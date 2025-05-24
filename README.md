@@ -70,7 +70,7 @@ src/
 ├── handlers/        # Message & command handlers
 ├── middlewares/     # Command parser & validation
 ├── utils/           # Helper functions & logger
-test/                # Test files and logging tests
+├── test/            # Test files and logging tests
 ```
 
 ## 📝 Logging System
@@ -95,12 +95,6 @@ LOG_MAX_SIZE=5m
 LOG_MAX_FILES=5
 ```
 
-### Testing Logging
-```bash
-# Test the logging system
-node test/test-logger.js
-```
-
 ## 🔧 Tech Stack
 
 - **TypeScript** - Type-safe development
@@ -108,14 +102,6 @@ node test/test-logger.js
 - **Sequelize** - PostgreSQL ORM
 - **Moment.js** - Date/time handling
 - **Axios** - HTTP requests for N8N
-
-## 📝 Language Policy
-
-This project follows a consistent language policy:
-- **Documentation & Code**: English (README, comments, variables)
-- **User Messages**: Indonesian (WhatsApp responses, command descriptions)
-
-See [LANGUAGE_POLICY.md](LANGUAGE_POLICY.md) for detailed guidelines.
 
 ---
 
