@@ -1,8 +1,9 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { User, UserLevel } from '../database/models';
+import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import { getCommandsByCategory, getCommand } from '../handlers/commandHandler';
 import { formatHelpCommand, formatBox } from '../utils/formatter';
+import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
 
@@ -26,8 +27,7 @@ const help: Command = {
    * @param args - Command arguments [optional: command_name]
    * @param client - WhatsApp client instance
    * @param user - User database object for permission filtering
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       logger.command('Processing help command', { 
         senderId: message.sender.id,
@@ -38,34 +38,35 @@ const help: Command = {
       const userLevel = user ? user.level : UserLevel.UNREGISTERED;
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isRegistered = user !== undefined;
+      const userLanguage = user?.language || Language.INDONESIAN;
       
       logger.user('User level determined', { 
         userLevel, 
         isOwner, 
         isRegistered,
+        language: userLanguage,
         phoneNumber: message.sender.id 
       });
       
       // Handle specific command help request
       if (args.length > 0) {
-        await handleSpecificCommandHelp(message, args[0], client, userLevel, isOwner);
+        await handleSpecificCommandHelp(message, args[0], client, userLevel, isOwner, userLanguage);
         return;
       }
       
       // Generate general help menu
-      await generateGeneralHelpMenu(message, client, userLevel, isOwner, isRegistered);
+      await generateGeneralHelpMenu(message, client, userLevel, isOwner, isRegistered, userLanguage);
         } catch (error) {
       logger.error('Error in help command:', { 
         error: error instanceof Error ? error.message : error,
         chatId: message.chatId,
         sender: message.sender?.id || 'unknown'
       });
-      
-      try {
+        try {
+        const userLang = user?.language || Language.INDONESIAN;
         await client.reply(
           message.chatId,
-          '❌ Terjadi kesalahan saat menampilkan menu bantuan.\n\n' +
-          '_Silakan coba lagi atau hubungi administrator._',
+          getText('command.error', userLang),
           message.id
         );
       } catch (replyError) {
@@ -85,13 +86,14 @@ const help: Command = {
  * @param client - WhatsApp client instance
  * @param userLevel - User's permission level
  * @param isOwner - Whether user is the bot owner
+ * @param userLanguage - User's preferred language
  */
 async function handleSpecificCommandHelp(
   message: Message, 
   commandName: string, 
   client: Client, 
   userLevel: UserLevel, 
-  isOwner: boolean
+  isOwner: boolean,  userLanguage: Language = Language.INDONESIAN
 ): Promise<void> {
   try {
     const command = getCommand(commandName.toLowerCase());
@@ -99,11 +101,9 @@ async function handleSpecificCommandHelp(
       logger.command('Command not found', { 
         commandName, 
         sender: message.sender.id 
-      });
-      await client.reply(
+      });      await client.reply(
         message.chatId,
-        `❌ Perintah \`${commandName}\` tidak ditemukan.\n\n` +
-        '*Gunakan* `!help` *untuk melihat daftar perintah yang tersedia.*',
+        getText('help.command_not_found', userLanguage),
         message.id
       );
       return;
@@ -116,11 +116,9 @@ async function handleSpecificCommandHelp(
         commandName, 
         userLevel, 
         sender: message.sender.id 
-      });
-      await client.reply(
+      });      await client.reply(
         message.chatId,
-        `🚫 Anda tidak memiliki izin untuk mengakses perintah \`${commandName}\`.\n\n` +
-        '_Tingkatkan level akun Anda atau hubungi administrator._',
+        getText('user.no_permission', userLanguage),
         message.id
       );
       return;
@@ -150,30 +148,30 @@ async function handleSpecificCommandHelp(
  * @param userLevel - User's permission level
  * @param isOwner - Whether user is the bot owner
  * @param isRegistered - Whether user is registered
+ * @param userLanguage - User's preferred language
  */
 async function generateGeneralHelpMenu(
   message: Message, 
   client: Client, 
   userLevel: UserLevel, 
   isOwner: boolean, 
-  isRegistered: boolean
+  isRegistered: boolean,
+  userLanguage: Language = Language.INDONESIAN
 ): Promise<void> {
   try {
     // Get all commands organized by category
     const categories = getCommandsByCategory();
-    
-    // Create help message header
-    let helpMessage = `🤖 *${config.botName} - Menu Bantuan*\n\n`;
+      // Create help message header
+    let helpMessage = `${getText('help.title', userLanguage)}\n\n`;
     
     // Add user status information
-    const levelName = getUserLevelName(userLevel);
-    helpMessage += `👤 *Status:* ${isRegistered ? `${levelName}` : 'Belum Terdaftar'}\n`;
-    helpMessage += `🎯 *Prefix:* ${config.prefixes.join(', ')}\n\n`;
+    const levelName = getUserLevelName(userLevel, userLanguage);
+    helpMessage += `${getText('help.status', userLanguage)}: ${isRegistered ? `${levelName}` : getText('help.not_registered', userLanguage)}\n`;
+    helpMessage += `${getText('help.prefix', userLanguage)}: ${config.prefixes.join(', ')}\n\n`;
     
     // Add registration notice for unregistered users
     if (!isRegistered) {
-      helpMessage += `⚠️ *Daftar dulu untuk akses penuh!*\n`;
-      helpMessage += `Ketik \`!register\` untuk mendaftar.\n\n`;
+      helpMessage += `${getText('help.register_notice', userLanguage)}\n\n`;
     }
     
     let totalCommands = 0;
@@ -200,14 +198,11 @@ async function generateGeneralHelpMenu(
       
       helpMessage += '\n';
     }
-    
-    // Add footer with additional information
-    helpMessage += `🔢 *Total Perintah Tersedia:* ${totalCommands}\n\n`;
-    helpMessage += `💡 *Tips:*\n`;
-    helpMessage += `• Ketik \`!help [nama perintah]\` untuk detail\n`;
-    helpMessage += `• Upgrade ke Premium untuk akses lebih banyak\n`;
-    helpMessage += `• Gunakan prefix ${config.prefixes[0]} sebelum perintah\n\n`;
-    helpMessage += `_Developed with ❤️ for better automation_`;
+      // Add footer with additional information
+    helpMessage += `${getText('help.total_commands', userLanguage)}: ${totalCommands}\n\n`;
+    helpMessage += `${getText('help.tips', userLanguage)}:\n`;
+    helpMessage += `${getText('help.tip_detail', userLanguage)}\n\n`;
+    helpMessage += `${getText('help.footer', userLanguage)}`;
       logger.success('Generated help menu', { 
       totalCommands, 
       userLevel, 
@@ -247,20 +242,21 @@ function checkCommandAccess(command: Command, userLevel: UserLevel, isOwner: boo
 /**
  * Get human-readable name for user level
  * @param level - User level enum value
+ * @param userLanguage - User's preferred language
  * @returns Human-readable level name
  */
-function getUserLevelName(level: UserLevel): string {
+function getUserLevelName(level: UserLevel, userLanguage: Language = Language.INDONESIAN): string {
   switch (level) {
     case UserLevel.UNREGISTERED:
-      return 'Belum Terdaftar';
+      return getText('level.unregistered', userLanguage);
     case UserLevel.FREE:
-      return 'Free';
+      return getText('level.free', userLanguage);
     case UserLevel.PREMIUM:
-      return 'Premium';
+      return getText('level.premium', userLanguage);
     case UserLevel.ADMIN:
-      return 'Admin';
+      return getText('level.admin', userLanguage);
     default:
-      return 'Unknown';
+      return getText('common.unknown', userLanguage);
   }
 }
 

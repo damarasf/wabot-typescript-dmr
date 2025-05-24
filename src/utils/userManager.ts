@@ -1,4 +1,4 @@
-import { User, UserLevel, Usage, FeatureType } from '../database/models';
+import { User, UserLevel, Usage, FeatureType, Language } from '../database/models';
 import config from './config';
 import moment from 'moment-timezone';
 import { log } from './logger';
@@ -22,12 +22,13 @@ export async function createUser(phone: string): Promise<User> {
   try {
     // Normalize phone number (remove non-digits)
     const normalizedPhone = phone.replace(/[^\d]/g, '');
-    
-    const user = await User.create({
+      const user = await User.create({
       phoneNumber: normalizedPhone,
       level: UserLevel.FREE,
+      language: Language.INDONESIAN,
       registeredAt: new Date(),
-      lastActivity: new Date(),    });
+      lastActivity: new Date(),
+    });
     
     log.user(`User created: ${normalizedPhone}`);
     return user;

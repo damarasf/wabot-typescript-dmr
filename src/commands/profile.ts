@@ -2,6 +2,7 @@ import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import { formatUserInfo } from '../utils/formatter';
+import { getText } from '../utils/i18n';
 import config from '../utils/config';
 
 /**
@@ -33,8 +34,7 @@ const profile: Command = {
       console.log(`❌ Unregistered user attempted to view profile: ${message.sender.id}`);
       await client.reply(
         message.chatId,
-        '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.\n\n' +
-        'Setelah registrasi, Anda dapat melihat profil lengkap dengan informasi level dan penggunaan fitur.',
+        getText('user.not_registered'),
         message.id
       );
       return;
@@ -44,7 +44,7 @@ const profile: Command = {
       console.log(`👤 Displaying profile for user ${user.phoneNumber}`);
       
       // Get user's display name from WhatsApp if possible
-      let displayName = message.sender.pushname || 'Tidak diketahui';
+      let displayName = message.sender.pushname || getText('common.unknown', user.language);
       
       try {
         // Try to get display name from user model method
@@ -61,20 +61,20 @@ const profile: Command = {
       // Add current session information
       const isOwner = user.phoneNumber === config.ownerNumber;
       const contextInfo = message.isGroupMsg ? 
-        `📍 *Konteks:* Grup (${String(message.chatId)})` : 
-        `📍 *Konteks:* Chat Personal`;
+        getText('profile.context_group', user.language) : 
+        getText('profile.context_personal', user.language);
       
-      const enhancedProfile = `👤 *PROFIL PENGGUNA*\n\n` +
-        `📛 *Nama:* ${displayName}\n` +
+      const enhancedProfile = `${getText('profile.title', user.language)}\n\n` +
+        `${getText('profile.name', user.language)} ${displayName}\n` +
         `${userInfo}\n\n` +
         `${contextInfo}\n` +
-        `🕐 *Waktu Akses:* ${new Date().toLocaleString('id-ID', { 
+        `${getText('profile.access_time', user.language)} ${new Date().toLocaleString('id-ID', { 
           timeZone: 'Asia/Jakarta',
           dateStyle: 'full',
           timeStyle: 'short'
         })}\n\n` +
-        (isOwner ? `👑 *Status:* Bot Owner\n` : '') +
-        `_Gunakan !help untuk melihat perintah yang tersedia_`;
+        (isOwner ? `${getText('profile.owner_status', user.language)}\n` : '') +
+        `${getText('profile.help_footer', user.language)}`;
       
       console.log(`✅ Profile displayed successfully for user ${user.phoneNumber}`);
       
@@ -85,22 +85,20 @@ const profile: Command = {
       console.error('❌ Error getting user profile:', error);
       
       // Enhanced error handling with specific error types
-      let errorMessage = 'Terjadi kesalahan saat mendapatkan profil pengguna.';
+      let errorMessage = getText('profile.error', user?.language);
       
       if (error instanceof Error) {
         if (error.message.includes('database')) {
-          errorMessage = 'Terjadi kesalahan database saat mengambil profil Anda.';
+          errorMessage = getText('profile.database_error', user?.language);
         } else if (error.message.includes('format')) {
-          errorMessage = 'Terjadi kesalahan format data profil.';
+          errorMessage = getText('profile.format_error', user?.language);
         }
         console.error('Error details:', error.message);
       }
       
-      try {
-        await client.reply(
+      try {        await client.reply(
           message.chatId,
-          `❌ ${errorMessage} Silakan coba lagi nanti.\n\n` +
-          '_Jika masalah berlanjut, hubungi administrator bot._',
+          errorMessage,
           message.id
         );
       } catch (replyError) {

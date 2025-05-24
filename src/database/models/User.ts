@@ -12,11 +12,18 @@ export enum UserLevel {
   // Owner is not stored in database, checked from config
 }
 
+// Define supported languages
+export enum Language {
+  INDONESIAN = 'id',
+  ENGLISH = 'en'
+}
+
 // Interface for User attributes
 interface UserAttributes {
   id: number;
   phoneNumber: string;
   level: UserLevel;
+  language: Language;
   registeredAt: Date;
   lastActivity: Date;
 }
@@ -28,6 +35,7 @@ interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {  public id!: number;
   public phoneNumber!: string;
   public level!: UserLevel;
+  public language!: Language;
   public registeredAt!: Date;
   public lastActivity!: Date;
 
@@ -83,17 +91,21 @@ User.init(
       type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
-    },
-    level: {
+    },    level: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: UserLevel.UNREGISTERED,
+    },
+    language: {
+      type: DataTypes.STRING(5),
+      allowNull: false,
+      defaultValue: Language.INDONESIAN,
     },
     registeredAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
-    },    lastActivity: {
+    },lastActivity: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,

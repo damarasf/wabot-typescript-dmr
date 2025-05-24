@@ -1,8 +1,10 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { User, UserLevel } from '../database/models';
+import { User, UserLevel, Language } from '../database/models';
 import * as userManager from '../utils/userManager';
 import { Command } from '../middlewares/commandParser';
+import { getText, getLevelName } from '../utils/i18n';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Register Command
@@ -28,25 +30,34 @@ const register: Command = {
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       console.log(`📝 Processing registration request from ${message.sender.id}`);
-      
-      // Check if user is already registered
+        // Check if user is already registered
       if (user) {
-        console.log(`⚠️ User ${message.sender.id} already registered with level ${user.level}`);
+        logger.info(`User already registered: ${message.sender.id} with level ${user.level}`);
         
-        const levelName = getUserLevelName(user.level);
-        const registrationDate = user.createdAt?.toLocaleDateString('id-ID', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          timeZone: 'Asia/Jakarta'
-        }) || 'Tidak diketahui';
+        const levelName = getLevelName(user.level, user.language);
+        const registrationDate = user.createdAt?.toLocaleDateString(
+          user.language === Language.INDONESIAN ? 'id-ID' : 'en-US', 
+          {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            timeZone: 'Asia/Jakarta'
+          }
+        ) || (user.language === Language.INDONESIAN ? 'Tidak diketahui' : 'Unknown');
+        
+        const alreadyRegisteredText = getText('register.already_registered', user.language);
+        const levelText = user.language === Language.INDONESIAN ? 'Level' : 'Level';
+        const registeredSinceText = user.language === Language.INDONESIAN ? 'Terdaftar sejak' : 'Registered since';
+        const tipsText = user.language === Language.INDONESIAN 
+          ? 'Tips: Gunakan `!profile` untuk melihat informasi lengkap akun Anda.'
+          : 'Tips: Use `!profile` to view your complete account information.';
         
         await client.reply(
           message.chatId,
-          `ℹ️ *Anda sudah terdaftar sebagai pengguna bot.*\n\n` +
-          `👤 *Level:* ${levelName}\n` +
-          `📅 *Terdaftar sejak:* ${registrationDate}\n\n` +
-          `💡 *Tips:* Gunakan \`!profile\` untuk melihat informasi lengkap akun Anda.`,
+          `${alreadyRegisteredText}\n\n` +
+          `👤 *${levelText}:* ${levelName}\n` +
+          `📅 *${registeredSinceText}:* ${registrationDate}\n\n` +
+          `💡 *${tipsText}`,
           message.id
         );
         return;
@@ -57,14 +68,12 @@ const register: Command = {
       const displayName = message.sender.pushname || `User-${phoneNumber.replace('@c.us', '').slice(-4)}`;
       
       console.log(`🆕 Registering new user: ${phoneNumber} (${displayName})`);
-      
-      // Validate phone number format
+        // Validate phone number format
       if (!phoneNumber || !phoneNumber.includes('@c.us')) {
         console.error(`❌ Invalid phone number format: ${phoneNumber}`);
         await client.reply(
           message.chatId,
-          '❌ Format nomor telepon tidak valid.\n\n' +
-          '_Silakan coba lagi atau hubungi administrator._',
+          getText('register.error'),
           message.id
         );
         return;
@@ -77,8 +86,7 @@ const register: Command = {
         console.error(`❌ Failed to create user: ${phoneNumber}`);
         await client.reply(
           message.chatId,
-          '❌ Gagal mendaftarkan pengguna.\n\n' +
-          '_Silakan coba lagi nanti atau hubungi administrator._',
+          getText('register.error'),
           message.id
         );
         return;

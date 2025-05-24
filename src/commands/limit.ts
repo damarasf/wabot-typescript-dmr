@@ -3,6 +3,7 @@ import { User, UserLevel, Usage, FeatureType } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import { formatBox, formatNumber } from '../utils/formatter';
+import { getText } from '../utils/i18n';
 import config from '../utils/config';
 
 /**
@@ -30,17 +31,12 @@ const limit: Command = {
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       console.log(`📊 Processing limit command from ${message.sender.id}`);
-      
-      // Validate user registration
+        // Validate user registration
       if (!user) {
         console.log(`❌ Unregistered user ${message.sender.id} attempted to check limits`);
         await client.reply(
           message.chatId,
-          '❌ *Belum Terdaftar*\n\n' +
-          'Anda belum terdaftar dalam sistem bot.\n\n' +
-          '*Silakan daftar terlebih dahulu:*\n' +
-          '`!register`\n\n' +
-          '_Setelah registrasi, Anda dapat melihat limit penggunaan._',
+          getText('user.not_registered'),
           message.id
         );
         return;
