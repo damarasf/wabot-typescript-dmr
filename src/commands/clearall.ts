@@ -1,26 +1,24 @@
 import { Client, Message } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
-import { User, Usage, Reminder, Group } from '../database/models';
-import { formatBox } from '../utils/formatter';
+import { User } from '../database/models';
 import config from '../utils/config';
 
 /**
  * Clear All Command
- * Nuclear option to clear all bot data - Owner only
- * Features comprehensive data removal, confirmation system, and detailed logging
+ * Clears WhatsApp chat history and media to free up memory - Owner only
+ * Features comprehensive chat clearing with safety confirmations
  */
 export const clearallCommand: Command = {
   name: 'clearall',
-  aliases: ['cleardata', 'resetdb', 'nuke'],
-  description: 'Hapus semua data pengguna dan reset database (khusus owner)',
+  aliases: ['clearchat', 'cleanchat', 'clearchats'],
+  description: 'Hapus semua riwayat chat WhatsApp (khusus owner)',
   category: 'Owner',
   cooldown: 30,
   usage: '!clearall CONFIRM',
   example: '!clearall CONFIRM',
   adminOnly: false,
   ownerOnly: true,
-  
-  /**
+    /**
    * Execute the clearall command
    * @param message - WhatsApp message object
    * @param args - Command arguments [CONFIRM]
@@ -38,7 +36,7 @@ export const clearallCommand: Command = {
           message.chatId,
           '🚫 *Akses Ditolak*\n\n' +
           'Perintah ini hanya dapat digunakan oleh owner bot.\n\n' +
-          '_Ini adalah operasi destruktif yang sangat sensitif._',
+          '_Ini adalah operasi untuk membersihkan riwayat chat._',
           message.id
         );
         return;
@@ -48,214 +46,138 @@ export const clearallCommand: Command = {
       if (args.length === 0 || args[0] !== 'CONFIRM') {
         console.log('⚠️ Clearall requested without confirmation');
         
-        // Get current data counts for information
-        let dataCounts = '';
-        try {
-          const userCount = await User.count();
-          const usageCount = await Usage.count();
-          const reminderCount = await Reminder.count();
-          const groupCount = await Group.count();
-          
-          dataCounts = `📊 *Data Saat Ini:*\n` +
-            `👥 Pengguna: ${userCount}\n` +
-            `📈 Usage Data: ${usageCount}\n` +
-            `⏰ Reminder: ${reminderCount}\n` +
-            `👥 Grup: ${groupCount}\n\n`;
-        } catch (countError) {
-          console.error('Error counting data:', countError);
-          dataCounts = '📊 *Data Saat Ini:* Tidak dapat dihitung\n\n';
-        }
-        
-        const warningMessage = `🚨 *PERINGATAN KRITIS*\n\n` +
-          `⚠️ **OPERASI DESTRUKTIF**\n` +
-          `Perintah ini akan menghapus SEMUA data bot!\n\n` +
-          dataCounts +
+        const warningMessage = `🚨 *PERINGATAN*\n\n` +
+          `⚠️ **OPERASI PEMBERSIHAN CHAT**\n` +
+          `Perintah ini akan menghapus semua riwayat chat WhatsApp!\n\n` +
           `🗑️ *Yang Akan Dihapus:*\n` +
-          `• Semua pengguna terdaftar\n` +
-          `• Semua data penggunaan/limit\n` +
-          `• Semua reminder aktif\n` +
-          `• Semua data grup\n` +
-          `• Semua riwayat aktivitas\n\n` +
-          `❌ **TINDAKAN INI TIDAK DAPAT DIBATALKAN!**\n\n` +
+          `• Semua riwayat chat\n` +
+          `• Semua media (foto, video, dokumen)\n` +
+          `• Pesan yang tersimpan di memori\n\n` +
+          `✅ *Yang TIDAK Dihapus:*\n` +
+          `• Data pengguna di database\n` +
+          `• Konfigurasi bot\n` +
+          `• Session WhatsApp\n\n` +
           `⚡ *Untuk melanjutkan, ketik:*\n` +
           `\`!clearall CONFIRM\`\n\n` +
-          `_Pastikan Anda benar-benar yakin sebelum melakukan ini._`;
+          `_Tujuan: Mengosongkan memory dan mempercepat bot._`;
 
         await client.reply(
           message.chatId,
-          formatBox('⚠️ KONFIRMASI DIPERLUKAN', warningMessage),
+          warningMessage,
           message.id
         );
         return;
       }
 
-      console.log('🔥 Clearall confirmed, starting data destruction process');
+      console.log('🔥 Clearall confirmed, starting chat clearing process');
 
       // Send initial warning with countdown
-      const initialWarning = `🚨 *PROSES PENGHAPUSAN DIMULAI*\n\n` +
-        `⚠️ Menghapus semua data dalam 3 detik...\n` +
-        `❌ Ini adalah kesempatan terakhir untuk membatalkan!\n\n` +
-        `_Proses akan dimulai dalam beberapa detik._`;
+      const initialWarning = `🚨 *PROSES PEMBERSIHAN DIMULAI*\n\n` +
+        `⚠️ Menghapus riwayat chat dalam 3 detik...\n` +
+        `🔄 Proses ini akan membersihkan memory bot.\n\n` +
+        `_Tunggu hingga selesai..._`;
       
       await client.reply(
         message.chatId,
-        formatBox('🚨 PERINGATAN', initialWarning),
+        initialWarning,
         message.id
       );
 
-      // 3 second delay for last-chance cancellation
+      // 3 second delay for preparation
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      console.log('💀 Starting database destruction');
-
-      // Count current data before destruction
-      let userCount = 0;
-      let usageCount = 0;
-      let reminderCount = 0;
-      let groupCount = 0;
-      
-      try {
-        userCount = await User.count();
-        usageCount = await Usage.count();
-        reminderCount = await Reminder.count();
-        groupCount = await Group.count();
-        
-        console.log(`📊 Data to be destroyed: Users(${userCount}), Usage(${usageCount}), Reminders(${reminderCount}), Groups(${groupCount})`);
-      } catch (countError) {
-        console.error('❌ Error counting data before destruction:', countError);
-      }
+      console.log('🧹 Starting chat clearing process');
 
       // Send progress message
       await client.reply(
         message.chatId,
-        '🔄 *Memproses penghapusan data...*\n\n_Harap tunggu, jangan matikan bot._',
+        '🔄 *Membersihkan riwayat chat...*\n\n_Harap tunggu, jangan matikan bot._',
         message.id
       );
 
-      // Start destruction process with error handling for each step
-      const destructionLog: string[] = [];
-      let totalDestroyed = 0;
-
-      try {
-        // Step 1: Clear Usage data
-        console.log('🗑️ Destroying usage data...');
-        const usageDestroyed = await Usage.destroy({ where: {}, force: true });
-        destructionLog.push(`✅ Usage data: ${usageDestroyed} records`);
-        totalDestroyed += usageDestroyed;
-      } catch (error) {
-        console.error('❌ Error destroying usage data:', error);
-        destructionLog.push(`❌ Usage data: Error occurred`);
-      }
-
-      try {
-        // Step 2: Clear Reminder data
-        console.log('🗑️ Destroying reminder data...');
-        const reminderDestroyed = await Reminder.destroy({ where: {}, force: true });
-        destructionLog.push(`✅ Reminder data: ${reminderDestroyed} records`);
-        totalDestroyed += reminderDestroyed;
-      } catch (error) {
-        console.error('❌ Error destroying reminder data:', error);
-        destructionLog.push(`❌ Reminder data: Error occurred`);
-      }
-
-      try {
-        // Step 3: Clear Group data
-        console.log('🗑️ Destroying group data...');
-        const groupDestroyed = await Group.destroy({ where: {}, force: true });
-        destructionLog.push(`✅ Group data: ${groupDestroyed} records`);
-        totalDestroyed += groupDestroyed;
-      } catch (error) {
-        console.error('❌ Error destroying group data:', error);
-        destructionLog.push(`❌ Group data: Error occurred`);
-      }
-
-      try {
-        // Step 4: Clear User data (last, as it may have foreign key constraints)
-        console.log('🗑️ Destroying user data...');
-        const userDestroyed = await User.destroy({ where: {}, force: true });
-        destructionLog.push(`✅ User data: ${userDestroyed} records`);
-        totalDestroyed += userDestroyed;
-      } catch (error) {
-        console.error('❌ Error destroying user data:', error);
-        destructionLog.push(`❌ User data: Error occurred`);
-      }
-
-      // Compile destruction report
-      const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+      let clearedCount = 0;
+      let methodUsed = 'Unknown';
       
-      const successMessage = `✅ *DATABASE BERHASIL DIRESET*\n\n` +
-        `🗑️ *Statistik Penghapusan:*\n` +
-        destructionLog.map(log => `${log}`).join('\n') + '\n\n' +
-        `📊 *Total Records Dihapus:* ${totalDestroyed}\n` +
-        `⏰ *Waktu:* ${timestamp}\n` +
-        `👑 *Oleh:* Owner (${message.sender.pushname || config.ownerNumber})\n\n` +
-        `🔄 *Status:* Database telah direset sepenuhnya!\n` +
-        `⚡ *Bot siap digunakan dengan data kosong.*\n\n` +
-        `_Semua pengguna harus registrasi ulang._`;
-
-      await client.reply(
-        message.chatId,
-        formatBox('✅ PENGHAPUSAN SELESAI', successMessage),
-        message.id
-      );
-
-      // Log the operation
-      console.log(`💀 Database cleared successfully by owner ${message.sender.id}`);
-      console.log(`📊 Total records destroyed: ${totalDestroyed}`);
-      console.log(`🕐 Operation completed at: ${timestamp}`);
-
-      // Send follow-up information after a delay
-      setTimeout(async () => {
-        try {
-          const followUpMessage = `📋 *Info Pasca Reset*\n\n` +
-            `🔧 *Yang Perlu Dilakukan:*\n` +
-            `• Restart bot (opsional)\n` +
-            `• Informasikan ke pengguna untuk registrasi ulang\n` +
-            `• Monitor performa bot\n\n` +
-            `📝 *Catatan:*\n` +
-            `• Konfigurasi bot tetap utuh\n` +
-            `• Database schema tidak berubah\n` +
-            `• Bot dapat langsung digunakan\n\n` +
-            `_Reset database berhasil diselesaikan._`;
+      try {
+        // Method 1: Try clearAllChats if available
+        if (typeof client.clearAllChats === 'function') {
+          console.log('🧹 Using clearAllChats method...');
+          await client.clearAllChats();
+          methodUsed = 'clearAllChats()';
+          clearedCount = -1; // Indicates all chats
+        } else {
+          // Method 2: Fallback - Get all chats and clear individually  
+          console.log('🧹 Using individual chat clearing method...');
+          const allChats = await client.getAllChats();
           
-          await client.reply(
-            message.chatId,
-            formatBox('📋 INFORMASI', followUpMessage),
-            message.id
-          );
-        } catch (followUpError) {
-          console.error('❌ Failed to send follow-up message:', followUpError);
+          for (const chat of allChats) {
+            try {
+              if (typeof client.clearChat === 'function') {
+                await client.clearChat(chat.id);
+                clearedCount++;
+              }
+            } catch (chatError) {
+              console.log(`⚠️ Could not clear chat ${chat.id}:`, chatError);
+            }
+          }
+          methodUsed = 'clearChat() per chat';
         }
-      }, 5000); // 5 second delay
+
+        // Success message
+        const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+        
+        let resultMessage = `✅ *RIWAYAT CHAT BERHASIL DIBERSIHKAN*\n\n`;
+        
+        if (clearedCount === -1) {
+          resultMessage += `🧹 *Status:* Semua chat dibersihkan\n`;
+        } else {
+          resultMessage += `🧹 *Chat Dibersihkan:* ${clearedCount} chat\n`;
+        }
+        
+        resultMessage += `⚙️ *Metode:* ${methodUsed}\n` +
+          `⏰ *Waktu:* ${timestamp}\n` +
+          `👑 *Oleh:* Owner\n\n` +
+          `✨ *Hasil:* Memory bot telah dibersihkan!\n` +
+          `🚀 *Bot siap dengan performa optimal.*`;
+
+        await client.reply(
+          message.chatId,
+          resultMessage,
+          message.id
+        );
+
+        console.log(`✅ Chat clearing completed successfully`);
+        console.log(`📊 Method used: ${methodUsed}`);
+        console.log(`🕐 Operation completed at: ${timestamp}`);
+
+      } catch (clearError) {
+        console.error('❌ Error during chat clearing:', clearError);
+        
+        await client.reply(
+          message.chatId,
+          `❌ *OPERASI GAGAL*\n\n` +
+          `Terjadi kesalahan saat membersihkan chat.\n\n` +
+          `🔧 *Saran:*\n` +
+          `• Restart bot dan coba lagi\n` +
+          `• Periksa koneksi WhatsApp\n` +
+          `• Hapus chat manual jika diperlukan\n\n` +
+          `_Coba lagi nanti atau restart bot._`,
+          message.id
+        );
+      }
 
     } catch (error) {
       console.error('❌ Critical error in clearall command:', error);
       
-      // Enhanced error handling for critical operations
-      let errorMessage = 'Terjadi kesalahan kritis saat menghapus data.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('database')) {
-          errorMessage = 'Kesalahan database saat menghapus data. Beberapa data mungkin masih tersisa.';
-        } else if (error.message.includes('permission')) {
-          errorMessage = 'Kesalahan izin saat mengakses database.';
-        } else if (error.message.includes('constraint')) {
-          errorMessage = 'Kesalahan constraint database. Ada dependensi data yang mencegah penghapusan.';
-        }
-        console.error('ClearAll error details:', error.message);
-        console.error('Error stack:', error.stack);
-      }
-      
       try {
         await client.reply(
           message.chatId,
-          `❌ *OPERASI GAGAL*\n\n` +
-          `${errorMessage}\n\n` +
-          `🔧 *Saran:*\n` +
-          `• Cek log untuk detail error\n` +
-          `• Restart bot jika diperlukan\n` +
-          `• Hubungi support teknis\n\n` +
-          `_Database mungkin dalam keadaan tidak konsisten._`,
+          `❌ *KESALAHAN SISTEM*\n\n` +
+          `Terjadi kesalahan kritis.\n\n` +
+          `🔧 *Solusi:*\n` +
+          `• Restart bot\n` +
+          `• Periksa log error\n` +
+          `• Hubungi support jika masalah berlanjut`,
           message.id
         );
       } catch (replyError) {
