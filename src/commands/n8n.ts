@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import * as n8nIntegration from '../utils/n8nIntegration';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * N8N Workflow Command
@@ -26,10 +27,12 @@ const n8n: Command = {
    * @param args - Command arguments [workflow_id, ...parameters]
    * @param client - WhatsApp client instance
    * @param user - User database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    // Validate user registration
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {    // Validate user registration
     if (!user) {
-      console.log(`❌ Unregistered user attempted to use N8N: ${message.sender.id}`);
+      logger.debug('Unregistered user attempted to use N8N', {
+        userId: message.sender.id,
+        command: 'n8n'
+      });
       await client.reply(
         message.chatId,
         '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
@@ -37,14 +40,22 @@ const n8n: Command = {
       );
       return;
     }
-    
-    try {
-      console.log(`🔗 Processing N8N workflow request for user ${user.phoneNumber}`);
+      try {
+      logger.command('Processing N8N workflow request for user', {
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        args: args.length
+      });
       
       // Check user limit for N8N feature
       const limitInfo = await userManager.checkLimit(user, FeatureType.N8N);
       if (limitInfo.hasReachedLimit) {
-        console.log(`⚠️ User ${user.phoneNumber} has reached N8N limit: ${limitInfo.currentUsage}/${limitInfo.maxUsage}`);
+        logger.debug('User has reached N8N limit', {
+          userId: user.id,
+          phoneNumber: user.phoneNumber,
+          currentUsage: limitInfo.currentUsage,
+          maxUsage: limitInfo.maxUsage
+        });
         await client.reply(
           message.chatId,
           `⚠️ Anda telah mencapai batas penggunaan fitur N8N (${limitInfo.currentUsage}/${limitInfo.maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium untuk mendapatkan limit lebih tinggi.`,
@@ -66,10 +77,12 @@ const n8n: Command = {
       
       // Extract parameters
       const params = args.slice(1).join(' ');
-      
-      // Validate N8N configuration
+        // Validate N8N configuration
       if (!config.n8nUrl || !config.n8nToken) {
-        console.log('❌ N8N configuration missing');
+        logger.debug('N8N configuration missing', {
+          hasUrl: !!config.n8nUrl,
+          hasToken: !!config.n8nToken
+        });
         await client.reply(
           message.chatId,
           '❌ Konfigurasi N8N tidak tersedia. Silakan hubungi administrator.',
@@ -97,7 +110,13 @@ const n8n: Command = {
         userLevel: user.level,
       };
       
-      console.log(`🚀 Executing N8N workflow: ${workflowId} with parameters: ${params}`);
+      logger.info('Executing N8N workflow', {
+        workflowId: workflowId,
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        params: params,
+        isGroup: message.isGroupMsg
+      });
       
       // Execute N8N workflow
       const result = await n8nIntegration.executeWorkflow({
@@ -127,16 +146,26 @@ const n8n: Command = {
         resultText = resultText.substring(0, 1900) + '\n\n_... (hasil dipotong karena terlalu panjang)_';
       }
       
-      console.log(`✅ N8N workflow completed successfully for user ${user.phoneNumber}`);
+      logger.success('N8N workflow completed successfully for user', {
+        workflowId: workflowId,
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        resultLength: resultText.length
+      });
       
       await client.reply(
         message.chatId,
         `✅ *Hasil N8N Workflow*\n\n${resultText}`,
         message.id
       );
-      
-    } catch (error) {
-      console.error('❌ Error executing N8N workflow:', error);
+        } catch (error) {
+      logger.error('Error executing N8N workflow', {
+        workflowId: args[0],
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling with specific error types
       let errorMessage = 'Terjadi kesalahan saat menjalankan workflow N8N.';
@@ -151,7 +180,11 @@ const n8n: Command = {
         } else if (error.message.includes('rate limit')) {
           errorMessage = 'Terlalu banyak permintaan ke N8N. Silakan tunggu sebentar dan coba lagi.';
         }
-        console.error('Error details:', error.message);
+        logger.debug('N8N error details', {
+          userId: user.id,
+          errorMessage: error.message,
+          errorType: error.constructor.name
+        });
       }
       
       try {
@@ -161,7 +194,11 @@ const n8n: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send error message:', replyError);
+        logger.error('Failed to send N8N error message', {
+          userId: user.id,
+          originalError: error instanceof Error ? error.message : String(error),
+          replyError: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

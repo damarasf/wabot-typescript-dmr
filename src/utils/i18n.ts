@@ -1,4 +1,5 @@
 import { Language } from '../database/models/User';
+import logger from './logger';
 
 // Language definitions for multi-language support
 interface LanguageData {
@@ -259,7 +260,11 @@ export function getText(key: string, language: Language = Language.INDONESIAN, f
   const translation = translations[key];
   
   if (!translation) {
-    console.warn(`Translation key not found: ${key}`);
+    logger.warn('Translation key not found', {
+      key: key,
+      language: language,
+      fallbackProvided: !!fallback
+    });
     return fallback || key;
   }
   

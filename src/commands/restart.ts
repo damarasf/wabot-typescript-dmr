@@ -3,6 +3,7 @@ import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import formatMessage from '../utils/formatter';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Restart Command
@@ -63,14 +64,19 @@ export const restartCommand: Command = {
             `\`restart confirm\` - Lanjutkan restart\n\n` +
             `⏰ **Timeout:** 30 detik (otomatis batal)`
           ),
-          message.id
-        );
+          message.id        );
 
-        console.log(`⚠️ [RESTART] Confirmation requested by owner: ${message.sender.id}`);
+        logger.debug('Restart confirmation requested by owner', {
+          userId: message.sender.id,
+          command: 'restart'
+        });
         return;
       }
 
-      console.log(`🔄 [RESTART] Confirmed restart initiated by owner: ${message.sender.id}`);
+      logger.command('Confirmed restart initiated by owner', {
+        userId: message.sender.id,
+        uptime: uptimeFormatted
+      });
       
       // Send restart notification with countdown
       await client.reply(
@@ -111,12 +117,17 @@ export const restartCommand: Command = {
       );
 
       // Send private notification to owner if restart is from group
-      if (isFromGroup) {
-        try {
+      if (isFromGroup) {        try {
           await client.sendText(`${config.ownerNumber}@c.us` as ContactId, ownerNotification);
-          console.log(`📨 [RESTART] Owner notification sent for group restart`);
+          logger.info('Owner notification sent for group restart', {
+            ownerNumber: config.ownerNumber,
+            fromGroup: isFromGroup
+          });
         } catch (notificationError) {
-          console.error(`❌ [RESTART] Failed to send owner notification:`, notificationError);
+          logger.error('Failed to send owner notification', {
+            ownerNumber: config.ownerNumber,
+            error: notificationError instanceof Error ? notificationError.message : String(notificationError)
+          });
         }
       }
 
@@ -135,7 +146,9 @@ export const restartCommand: Command = {
             ),
             message.id
           );        } catch (updateError) {
-          console.log(`⚠️ [RESTART] Progress update failed:`, (updateError as Error).message || 'Unknown error');
+          logger.debug('Restart progress update failed', {
+            error: updateError instanceof Error ? updateError.message : 'Unknown error'
+          });
         }
       }, 5000);
 
@@ -154,22 +167,31 @@ export const restartCommand: Command = {
             ),
             message.id
           );        } catch (finalError) {
-          console.log(`⚠️ [RESTART] Final message failed:`, (finalError as Error).message || 'Unknown error');
+          logger.debug('Final restart message failed', {
+            error: finalError instanceof Error ? finalError.message : 'Unknown error'
+          });
         }
         
-        console.log(`🔄 [RESTART] Executing restart...`);
-        console.log(`📊 [RESTART] Final stats: Uptime=${uptimeFormatted}, Memory=${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+        logger.info('Executing restart process', {
+          uptime: uptimeFormatted,
+          memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+          processId: process.pid
+        });
         
         // Graceful shutdown
         setTimeout(() => {
-          console.log('🔄 [RESTART] Process exiting...');
+          logger.info('Process exiting for restart');
           process.exit(0); // This will trigger PM2 or system restart
         }, 1000);
         
-      }, 10000);
-
-    } catch (error) {
-      console.error('❌ [RESTART] Command error:', error);
+      }, 10000);    } catch (error) {
+      logger.error('Command error in restart', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        processId: process.pid,
+        memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        uptime: formatUptime(process.uptime())
+      });
       
       await client.reply(
         message.from,

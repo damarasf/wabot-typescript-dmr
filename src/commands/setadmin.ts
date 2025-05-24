@@ -3,6 +3,7 @@ import { User, UserLevel } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Set Admin Command
@@ -26,14 +27,17 @@ const setadmin: Command = {
    * @param args - Command arguments [phone_number or mention]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`👑 Processing setadmin command from owner ${message.sender.id}`);
+      logger.command(`setadmin from owner ${message.sender.id}`, {
+        userId: message.sender.id,
+        args,
+        chatId: message.chatId
+      });
       
       // Additional owner verification (safety check)
       if (String(message.sender.id) !== config.ownerNumber) {
-        console.log(`❌ Unauthorized setadmin attempt by ${message.sender.id}`);
+        logger.security(`Unauthorized setadmin attempt by ${message.sender.id}`);
         await client.reply(
           message.chatId,
           '🚫 *Akses Ditolak*\n\n' +
@@ -47,13 +51,15 @@ const setadmin: Command = {
       // Parse target user from mentions or phone number
       let targetUserId: string | null = null;
       let displayMethod = '';
-      
-      // Check for mentioned users first
+        // Check for mentioned users first
       const mentionedIds = message.mentionedJidList || [];
       if (mentionedIds.length > 0) {
         targetUserId = mentionedIds[0];
         displayMethod = 'mention';
-        console.log(`🎯 Target user from mention: ${targetUserId}`);
+        logger.debug(`Target user from mention: ${targetUserId}`, {
+          targetUserId,
+          userId: message.sender.id
+        });
       } else if (args.length > 0) {
         // Try to parse as phone number
         let phoneNumber = args[0].trim();
@@ -69,12 +75,16 @@ const setadmin: Command = {
         
         targetUserId = phoneNumber + '@c.us';
         displayMethod = 'phone';
-        console.log(`📱 Target user from phone: ${targetUserId}`);
+        logger.debug(`Target user from phone: ${targetUserId}`, {
+          targetUserId,
+          phoneNumber,
+          userId: message.sender.id
+        });
       }
       
       // Validate target user provided
       if (!targetUserId) {
-        console.log('❌ No target user specified for setadmin');
+        logger.debug('No target user specified for setadmin');
         await client.reply(
           message.chatId,
           '❌ *Target Tidak Valid*\n\n' +
@@ -104,9 +114,11 @@ const setadmin: Command = {
 
       // Check if target user exists in database
       const targetUser = await userManager.getUserByPhone(normalizedPhone);
-      
-      if (!targetUser) {
-        console.log(`❌ Target user ${normalizedPhone} not found in database`);
+        if (!targetUser) {
+        logger.user(`Target user ${normalizedPhone} not found in database`, {
+          targetPhone: normalizedPhone,
+          userId: message.sender.id
+        });
         await client.reply(
           message.chatId,
           '❌ *Pengguna Tidak Ditemukan*\n\n' +
@@ -122,9 +134,12 @@ const setadmin: Command = {
 
       // Check current user level
       const currentLevelName = UserLevel[targetUser.level] || 'Unknown';
-      
-      if (targetUser.level >= UserLevel.ADMIN) {
-        console.log(`⚠️ User ${normalizedPhone} already has Admin level or higher`);
+        if (targetUser.level >= UserLevel.ADMIN) {
+        logger.user(`User ${normalizedPhone} already has Admin level or higher`, {
+          targetPhone: normalizedPhone,
+          currentLevel: currentLevelName,
+          userId: message.sender.id
+        });
         
         // Get display name
         let userName = 'Pengguna';
@@ -144,16 +159,24 @@ const setadmin: Command = {
           '_Pengguna ini sudah memiliki level Admin atau lebih tinggi._',
           message.id
         );
-        return;
-      }
+        return;      }
 
-      console.log(`🔄 Promoting user ${normalizedPhone} from ${currentLevelName} to Admin`);
+      logger.user(`Promoting user ${normalizedPhone} from ${currentLevelName} to Admin`, {
+        targetPhone: normalizedPhone,
+        fromLevel: currentLevelName,
+        toLevel: 'Admin',
+        userId: message.sender.id
+      });
       
       // Set user as admin
       const updatedUser = await userManager.setUserLevel(targetUser.id, UserLevel.ADMIN);
       
       if (!updatedUser) {
-        console.error(`❌ Failed to update user level for ${normalizedPhone}`);
+        logger.error(`Failed to update user level for ${normalizedPhone}`, {
+          targetPhone: normalizedPhone,
+          targetLevel: 'Admin',
+          userId: message.sender.id
+        });
         await client.reply(
           message.chatId,
           '❌ *Gagal Mengatur Admin*\n\n' +
@@ -170,11 +193,15 @@ const setadmin: Command = {
         const contact = await client.getContact(targetUserId as ContactId);
         userName = contact.pushname || contact.name || contact.shortName || targetUser.phoneNumber;
       } catch (contactError) {
-        console.log('ℹ️ Could not fetch contact info, using phone number');
-        userName = targetUser.phoneNumber;
-      }
+        logger.debug('Could not fetch contact info, using phone number');
+        userName = targetUser.phoneNumber;      }
 
-      console.log(`✅ Successfully promoted ${normalizedPhone} to Admin level`);
+      logger.success(`Successfully promoted ${normalizedPhone} to Admin level`, {
+        targetPhone: normalizedPhone,
+        fromLevel: currentLevelName,
+        toLevel: 'Admin',
+        userId: message.sender.id
+      });
 
       // Send success message with comprehensive information
       const successMessage = `✅ *Admin Berhasil Ditetapkan*\n\n` +
@@ -208,17 +235,26 @@ const setadmin: Command = {
             `• Prioritas dukungan teknis\n\n` +
             `📚 *Gunakan:* \`!help\` untuk melihat perintah admin\n\n` +
             `_Gunakan privilege ini dengan bijak dan sesuai aturan._`;
-          
-          await client.sendText(targetUserId as any, adminNotification);
-          console.log(`📨 Admin notification sent to ${normalizedPhone}`);
+            await client.sendText(targetUserId as any, adminNotification);
+          logger.info(`Admin notification sent to ${normalizedPhone}`, {
+            targetPhone: normalizedPhone,
+            userId: message.sender.id
+          });
         } catch (notificationError) {
-          console.error('❌ Failed to send admin notification:', notificationError);
+          logger.error('Failed to send admin notification', {
+            targetPhone: normalizedPhone,
+            error: notificationError instanceof Error ? notificationError.message : String(notificationError)
+          });
           // Don't fail the main operation
         }
       }, 1500); // 1.5 second delay
 
     } catch (error) {
-      console.error('❌ Error in setadmin command:', error);
+      logger.error('Error in setadmin command', {
+        userId: message.sender.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling
       let errorMessage = 'Terjadi kesalahan saat mengatur admin.';
@@ -229,9 +265,11 @@ const setadmin: Command = {
         } else if (error.message.includes('permission')) {
           errorMessage = 'Tidak memiliki izin untuk melakukan operasi ini.';
         } else if (error.message.includes('user')) {
-          errorMessage = 'Pengguna tidak ditemukan atau tidak valid.';
-        }
-        console.error('SetAdmin error details:', error.message);
+          errorMessage = 'Pengguna tidak ditemukan atau tidak valid.';        }
+        logger.debug('SetAdmin error details', {
+          message: error.message,
+          userId: message.sender.id
+        });
       }
       
       try {
@@ -241,7 +279,10 @@ const setadmin: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send setadmin error message:', replyError);
+        logger.error('Failed to send setadmin error message', {
+          userId: message.sender.id,
+          error: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

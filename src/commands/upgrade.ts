@@ -3,6 +3,7 @@ import { User, UserLevel } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Upgrade Command
@@ -27,15 +28,17 @@ const upgrade: Command = {
    * @param client - WhatsApp client instance
    * @param user - Admin user database object
    */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {
-      console.log(`👑 Processing upgrade command from ${message.sender.id}`);
+    try {      logger.command(`upgrade from ${message.sender.id}`, {
+        userId: message.sender.id,
+        args,
+        chatId: message.chatId
+      });
       
       // Validate admin permissions (redundant check for safety)
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isAdmin = user && user.level >= UserLevel.ADMIN;
-      
-      if (!isOwner && !isAdmin) {
-        console.log(`❌ Unauthorized upgrade attempt by ${message.sender.id}`);
+        if (!isOwner && !isAdmin) {
+        logger.user(`Unauthorized upgrade attempt by ${message.sender.id}`);
         await client.reply(
           message.chatId,
           '❌ Anda tidak memiliki izin untuk menggunakan perintah ini.\n\n' +
@@ -70,11 +73,13 @@ const upgrade: Command = {
           '• `!upgrade @user` (tag pengguna)\n' +
           '• `!upgrade 6281234567890` (nomor telepon)',
           message.id
-        );
-        return;
+        );        return;
       }
       
-      console.log(`🔍 Looking for target user: ${targetPhoneNumber}`);
+      logger.debug(`Looking for target user: ${targetPhoneNumber}`, {
+        targetPhoneNumber,
+        userId: message.sender.id
+      });
       
       // Find target user in database
       const targetUser = await userManager.getUserByPhone(targetPhoneNumber);
@@ -108,16 +113,21 @@ const upgrade: Command = {
           '❌ Anda tidak dapat mengupgrade level diri sendiri.',
           message.id
         );
-        return;
-      }
+        return;      }
       
-      console.log(`⬆️ Upgrading user ${targetUser.phoneNumber} to Premium`);
+      logger.user(`Upgrading user ${targetUser.phoneNumber} to Premium`, {
+        requestedBy: message.sender.id,
+        targetLevel: 'Premium'
+      });
       
       // Upgrade user to premium
       const updatedUser = await userManager.setUserLevel(targetUser.id, UserLevel.PREMIUM);
       
       if (!updatedUser) {
-        console.error(`❌ Failed to upgrade user ${targetUser.phoneNumber}`);
+        logger.error(`Failed to upgrade user ${targetUser.phoneNumber}`, {
+          targetPhone: targetUser.phoneNumber,
+          requestedBy: message.sender.id
+        });
         await client.reply(
           message.chatId,
           '❌ Terjadi kesalahan saat mengupgrade pengguna.\n\n' +
@@ -135,13 +145,15 @@ const upgrade: Command = {
         adminName = message.sender.pushname || `${message.sender.id.replace('@c.us', '')}`;        if (mentionedUsers.length > 0) {
           // Try to get contact info for mentioned user
           const contactInfo = await client.getContact(targetPhoneNumber as ContactId);
-          targetName = contactInfo.pushname || contactInfo.shortName || targetPhoneNumber.replace('@c.us', '');
-        }
+          targetName = contactInfo.pushname || contactInfo.shortName || targetPhoneNumber.replace('@c.us', '');        }
       } catch (nameError) {
-        console.log('Could not fetch display names, using fallbacks');
+        logger.debug('Could not fetch display names, using fallbacks');
       }
       
-      console.log(`✅ Successfully upgraded user ${targetUser.phoneNumber} to Premium`);
+      logger.success(`Successfully upgraded user ${targetUser.phoneNumber} to Premium`, {
+        targetPhone: targetUser.phoneNumber,
+        requestedBy: message.sender.id
+      });
       
       // Send success message to current chat
       const successMessage = mentionedUsers.length > 0 ?
@@ -170,15 +182,21 @@ const upgrade: Command = {
           `• Dukungan teknis yang lebih baik\n\n` +
           `👑 *Diupgrade oleh:* ${adminName}\n` +
           `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}\n\n` +
-          `_Terima kasih telah menggunakan bot kami!_`
-        );
+          `_Terima kasih telah menggunakan bot kami!_`        );
       } catch (notifyError) {
-        console.error('❌ Failed to notify target user:', notifyError);
+        logger.error('Failed to notify target user', {
+          targetPhone: targetPhoneNumber,
+          error: notifyError instanceof Error ? notifyError.message : String(notifyError)
+        });
         // Don't fail the whole operation if notification fails
       }
       
     } catch (error) {
-      console.error('❌ Error upgrading user:', error);
+      logger.error('Error upgrading user', {
+        userId: message.sender.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling with specific error types
       let errorMessage = 'Terjadi kesalahan saat mengupgrade pengguna.';
@@ -187,11 +205,13 @@ const upgrade: Command = {
         if (error.message.includes('database')) {
           errorMessage = 'Terjadi kesalahan database saat mengupgrade pengguna.';
         } else if (error.message.includes('validation')) {
-          errorMessage = 'Data pengguna tidak valid untuk diupgrade.';
-        } else if (error.message.includes('permission')) {
+          errorMessage = 'Data pengguna tidak valid untuk diupgrade.';        } else if (error.message.includes('permission')) {
           errorMessage = 'Tidak memiliki izin untuk mengupgrade pengguna ini.';
         }
-        console.error('Error details:', error.message);
+        logger.debug('Upgrade error details', { 
+          message: error.message,
+          userId: message.sender.id
+        });
       }
       
       try {
@@ -201,7 +221,10 @@ const upgrade: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send error message:', replyError);
+        logger.error('Failed to send upgrade error message', {
+          userId: message.sender.id,
+          error: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

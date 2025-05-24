@@ -27,9 +27,10 @@ const register: Command = {
    * @param client - WhatsApp client instance
    * @param user - Existing user object (if already registered)
    */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {
-      console.log(`📝 Processing registration request from ${message.sender.id}`);
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {    try {
+      logger.command('Processing registration request', { 
+        senderId: message.sender.id
+      });
         // Check if user is already registered
       if (user) {
         logger.info(`User already registered: ${message.sender.id} with level ${user.level}`);
@@ -67,10 +68,12 @@ const register: Command = {
       const phoneNumber = message.sender.id;
       const displayName = message.sender.pushname || `User-${phoneNumber.replace('@c.us', '').slice(-4)}`;
       
-      console.log(`🆕 Registering new user: ${phoneNumber} (${displayName})`);
-        // Validate phone number format
+      logger.user('Registering new user', { 
+        phoneNumber: phoneNumber.replace('@c.us', ''), 
+        displayName 
+      });      // Validate phone number format
       if (!phoneNumber || !phoneNumber.includes('@c.us')) {
-        console.error(`❌ Invalid phone number format: ${phoneNumber}`);
+        logger.error('Invalid phone number format', { phoneNumber });
         await client.reply(
           message.chatId,
           getText('register.error'),
@@ -81,9 +84,8 @@ const register: Command = {
       
       // Create new user
       const newUser = await userManager.createUser(phoneNumber);
-      
-      if (!newUser) {
-        console.error(`❌ Failed to create user: ${phoneNumber}`);
+        if (!newUser) {
+        logger.error('Failed to create user in database', { phoneNumber });
         await client.reply(
           message.chatId,
           getText('register.error'),
@@ -92,7 +94,10 @@ const register: Command = {
         return;
       }
       
-      console.log(`✅ Successfully registered user: ${phoneNumber} with ID ${newUser.id}`);
+      logger.success('User registration completed', { 
+        phoneNumber: phoneNumber.replace('@c.us', ''), 
+        userId: newUser.id 
+      });
       
       // Generate welcome message
       const welcomeMessage = generateWelcomeMessage(displayName, newUser);
@@ -112,15 +117,18 @@ const register: Command = {
             `💎 *Ingin upgrade ke Premium?*\n` +
             `Hubungi administrator untuk mendapatkan akses Premium dengan fitur lebih lengkap!\n\n` +
             `_Selamat menggunakan ${config.botName}! 🎉_`
-          );
-        } catch (followUpError) {
-          console.error('❌ Failed to send follow-up message:', followUpError);
-          // Don't fail the registration if follow-up message fails
+          );        } catch (followUpError) {
+          logger.error('Failed to send follow-up message', { 
+            error: followUpError instanceof Error ? followUpError.message : followUpError 
+          });
         }
       }, 2000); // 2 second delay
       
     } catch (error) {
-      console.error('❌ Error registering user:', error);
+      logger.error('Registration process failed', { 
+        error: error instanceof Error ? error.message : error,
+        senderId: message.sender.id
+      });
       
       // Enhanced error handling with specific error types
       let errorMessage = 'Terjadi kesalahan saat mendaftarkan pengguna.';
@@ -133,7 +141,7 @@ const register: Command = {
         } else if (error.message.includes('validation')) {
           errorMessage = 'Data pendaftaran tidak valid.';
         }
-        console.error('Registration error details:', error.message);
+        logger.debug('Registration error details', { errorMessage: error.message });
       }
       
       try {
@@ -143,7 +151,9 @@ const register: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send registration error message:', replyError);
+        logger.error('Failed to send registration error message', { 
+          error: replyError instanceof Error ? replyError.message : replyError 
+        });
       }
     }
   },

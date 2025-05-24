@@ -37,6 +37,24 @@ qr_codes/
 .wa-*
 MultiDevice/
 
+# WhatsApp Bot specific files
+_IGNORE_*/
+_IGNORE_dmr-bot/
+.node-persist/
+.wwebjs_auth/
+.wwebjs_cache/
+chrome_crashpad_handler.exe
+
+# Screenshots and temporary files
+screenshot_*.png
+temp/
+tmp/
+
+# Configuration files with sensitive data
+config.json
+settings.json
+auth.json
+
 # Logs
 logs/
 *.log
@@ -46,10 +64,26 @@ logs/
 !README.md
 !SETUP.md
 
+# Backup and temporary files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*~
+.#*
+
 # Database
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
+
+# Test files
+test_*.js
+test_*.ts
+*_test.js
+*_test.ts
 
 # OS generated files
 .DS_Store
@@ -129,3 +163,31 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Security and sensitive files
+secrets/
+private_keys/
+certificates/
+*.pem
+*.key
+*.crt
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Memory dumps
+core.*
+heapdump.*
+
+# Chrome/Puppeteer related
+.config/
+.cache/
+.local/
+
+# WhatsApp related runtime files
+browser_data/
+chrome_profile/
+user_data/

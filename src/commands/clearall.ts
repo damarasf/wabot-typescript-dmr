@@ -2,6 +2,7 @@ import { Client, Message } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Clear All Command
@@ -24,14 +25,21 @@ export const clearallCommand: Command = {
    * @param args - Command arguments [CONFIRM]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`🧹 Processing clearall command from owner ${message.sender.id}`);
+      logger.command('Processing clearall command from owner', {
+        userId: message.sender.id,
+        command: 'clearall',
+        args: args.length
+      });
       
       // Additional owner verification (safety check)
       if (String(message.sender.id) !== config.ownerNumber) {
-        console.log(`❌ Unauthorized clearall attempt by ${message.sender.id}`);
+        logger.security('Unauthorized clearall attempt', {
+          userId: message.sender.id,
+          command: 'clearall',
+          ownerNumber: config.ownerNumber
+        });
         await client.reply(
           message.chatId,
           '🚫 *Akses Ditolak*\n\n' +
@@ -44,7 +52,11 @@ export const clearallCommand: Command = {
 
       // Check for confirmation
       if (args.length === 0 || args[0] !== 'CONFIRM') {
-        console.log('⚠️ Clearall requested without confirmation');
+        logger.debug('Clearall requested without confirmation', {
+          userId: message.sender.id,
+          argsProvided: args.length,
+          firstArg: args[0] || 'none'
+        });
         
         const warningMessage = `🚨 *PERINGATAN*\n\n` +
           `⚠️ **OPERASI PEMBERSIHAN CHAT**\n` +
@@ -69,7 +81,10 @@ export const clearallCommand: Command = {
         return;
       }
 
-      console.log('🔥 Clearall confirmed, starting chat clearing process');
+      logger.user('Clearall confirmed, starting chat clearing process', {
+        userId: message.sender.id,
+        chatId: message.chatId
+      });
 
       // Send initial warning with countdown
       const initialWarning = `🚨 *PROSES PEMBERSIHAN DIMULAI*\n\n` +
@@ -86,7 +101,9 @@ export const clearallCommand: Command = {
       // 3 second delay for preparation
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      console.log('🧹 Starting chat clearing process');
+      logger.info('Starting chat clearing process', {
+        userId: message.sender.id
+      });
 
       // Send progress message
       await client.reply(
@@ -98,16 +115,21 @@ export const clearallCommand: Command = {
       let clearedCount = 0;
       let methodUsed = 'Unknown';
       
-      try {
-        // Method 1: Try clearAllChats if available
+      try {        // Method 1: Try clearAllChats if available
         if (typeof client.clearAllChats === 'function') {
-          console.log('🧹 Using clearAllChats method...');
+          logger.debug('Using clearAllChats method for chat clearing', {
+            userId: message.sender.id,
+            method: 'clearAllChats'
+          });
           await client.clearAllChats();
           methodUsed = 'clearAllChats()';
           clearedCount = -1; // Indicates all chats
         } else {
           // Method 2: Fallback - Get all chats and clear individually  
-          console.log('🧹 Using individual chat clearing method...');
+          logger.debug('Using individual chat clearing method', {
+            userId: message.sender.id,
+            method: 'clearChat'
+          });
           const allChats = await client.getAllChats();
           
           for (const chat of allChats) {
@@ -117,7 +139,11 @@ export const clearallCommand: Command = {
                 clearedCount++;
               }
             } catch (chatError) {
-              console.log(`⚠️ Could not clear chat ${chat.id}:`, chatError);
+              logger.debug('Could not clear individual chat', {
+                userId: message.sender.id,
+                chatId: chat.id,
+                error: chatError instanceof Error ? chatError.message : String(chatError)
+              });
             }
           }
           methodUsed = 'clearChat() per chat';
@@ -144,14 +170,17 @@ export const clearallCommand: Command = {
           message.chatId,
           resultMessage,
           message.id
-        );
-
-        console.log(`✅ Chat clearing completed successfully`);
-        console.log(`📊 Method used: ${methodUsed}`);
-        console.log(`🕐 Operation completed at: ${timestamp}`);
-
-      } catch (clearError) {
-        console.error('❌ Error during chat clearing:', clearError);
+        );        logger.success('Chat clearing completed successfully', {
+          userId: message.sender.id,
+          method: methodUsed,
+          clearedCount: clearedCount,
+          timestamp: timestamp
+        });      } catch (clearError) {
+        logger.error('Error during chat clearing', {
+          userId: message.sender.id,
+          error: clearError instanceof Error ? clearError.message : String(clearError),
+          stack: clearError instanceof Error ? clearError.stack : undefined
+        });
         
         await client.reply(
           message.chatId,
@@ -164,10 +193,13 @@ export const clearallCommand: Command = {
           `_Coba lagi nanti atau restart bot._`,
           message.id
         );
-      }
-
-    } catch (error) {
-      console.error('❌ Critical error in clearall command:', error);
+      }    } catch (error) {
+      logger.error('Critical error in clearall command', {
+        userId: message.sender.id,
+        chatId: message.chatId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       try {
         await client.reply(
@@ -181,7 +213,12 @@ export const clearallCommand: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send clearall error message:', replyError);
+        logger.error('Failed to send clearall error message', {
+          userId: message.sender.id,
+          chatId: message.chatId,
+          originalError: error instanceof Error ? error.message : String(error),
+          replyError: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   }

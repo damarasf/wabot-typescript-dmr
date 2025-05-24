@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import { formatUserInfo } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Profile Command
@@ -31,7 +32,10 @@ const profile: Command = {
    */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     // Validate user registration
     if (!user) {
-      console.log(`❌ Unregistered user attempted to view profile: ${message.sender.id}`);
+      logger.debug('Unregistered user attempted to view profile', {
+        userId: message.sender.id,
+        command: 'profile'
+      });
       await client.reply(
         message.chatId,
         getText('user.not_registered'),
@@ -39,9 +43,12 @@ const profile: Command = {
       );
       return;
     }
-    
-    try {
-      console.log(`👤 Displaying profile for user ${user.phoneNumber}`);
+      try {
+      logger.user('Displaying profile for user', {
+        userId: message.sender.id,
+        phoneNumber: user.phoneNumber,
+        userLevel: user.level
+      });
       
       // Get user's display name from WhatsApp if possible
       let displayName = message.sender.pushname || getText('common.unknown', user.language);
@@ -52,7 +59,10 @@ const profile: Command = {
           displayName = await user.getDisplayName(client);
         }
       } catch (nameError) {
-        console.log('Could not fetch display name from WhatsApp API, using fallback');
+        logger.debug('Could not fetch display name from WhatsApp API, using fallback', {
+          userId: message.sender.id,
+          error: nameError instanceof Error ? nameError.message : String(nameError)
+        });
       }
       
       // Format comprehensive user information
@@ -75,34 +85,50 @@ const profile: Command = {
         })}\n\n` +
         (isOwner ? `${getText('profile.owner_status', user.language)}\n` : '') +
         `${getText('profile.help_footer', user.language)}`;
-      
-      console.log(`✅ Profile displayed successfully for user ${user.phoneNumber}`);
+        logger.success('Profile displayed successfully for user', {
+        userId: message.sender.id,
+        phoneNumber: user.phoneNumber,
+        displayName: displayName
+      });
       
       // Send the enhanced user profile
       await client.reply(message.chatId, enhancedProfile, message.id);
       
     } catch (error) {
-      console.error('❌ Error getting user profile:', error);
+      logger.error('Error getting user profile', {
+        userId: message.sender.id,
+        phoneNumber: user?.phoneNumber,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling with specific error types
       let errorMessage = getText('profile.error', user?.language);
       
       if (error instanceof Error) {
         if (error.message.includes('database')) {
-          errorMessage = getText('profile.database_error', user?.language);
-        } else if (error.message.includes('format')) {
+          errorMessage = getText('profile.database_error', user?.language);        } else if (error.message.includes('format')) {
           errorMessage = getText('profile.format_error', user?.language);
         }
-        console.error('Error details:', error.message);
+        logger.debug('Profile error details', {
+          userId: message.sender.id,
+          errorMessage: error.message,
+          errorType: error.constructor.name
+        });
       }
       
-      try {        await client.reply(
+      try {
+        await client.reply(
           message.chatId,
           errorMessage,
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send error message:', replyError);
+        logger.error('Failed to send profile error message', {
+          userId: message.sender.id,
+          originalError: error instanceof Error ? error.message : String(error),
+          replyError: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

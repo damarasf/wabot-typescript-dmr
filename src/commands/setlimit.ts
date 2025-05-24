@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import { formatNumber } from '../utils/formatter';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Set Limit Command
@@ -27,17 +28,20 @@ const setlimit: Command = {
    * @param args - Command arguments [@user, feature, limit_amount]
    * @param client - WhatsApp client instance
    * @param user - Admin user database object
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`⚙️ Processing setlimit command from ${message.sender.id}`);
+      logger.command(`setlimit from ${message.sender.id}`, {
+        userId: message.sender.id,
+        args,
+        chatId: message.chatId
+      });
       
       // Additional permission check (safety)
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isAdmin = user && user.level >= UserLevel.ADMIN;
       
       if (!isOwner && !isAdmin) {
-        console.log(`❌ Unauthorized setlimit attempt by ${message.sender.id}`);
+        logger.user(`Unauthorized setlimit attempt by ${message.sender.id}`);
         await client.reply(
           message.chatId,
           '🚫 *Akses Ditolak*\n\n' +
@@ -53,13 +57,15 @@ const setlimit: Command = {
       // Parse target user from mentions or phone number
       let targetUserId: string | null = null;
       let displayMethod = '';
-      
-      // Check for mentioned users first
+        // Check for mentioned users first
       const mentionedIds = message.mentionedJidList || [];
       if (mentionedIds.length > 0) {
         targetUserId = mentionedIds[0];
         displayMethod = 'mention';
-        console.log(`🎯 Target user from mention: ${targetUserId}`);
+        logger.debug(`Target user from mention: ${targetUserId}`, {
+          targetUserId,
+          userId: message.sender.id
+        });
       } else {
         // No mention provided
         await client.reply(
@@ -107,9 +113,11 @@ const setlimit: Command = {
         case 'tagall':
           feature = FeatureType.TAG_ALL;
           featureDisplayName = 'Tag All Member';
-          break;
-        default:
-          console.log(`❌ Invalid feature specified: ${featureArg}`);
+          break;        default:
+          logger.debug(`Invalid feature specified: ${featureArg}`, {
+            featureArg,
+            userId: message.sender.id
+          });
           await client.reply(
             message.chatId,
             `❌ *Feature Tidak Valid*\n\n` +
@@ -192,9 +200,11 @@ const setlimit: Command = {
       
       // Check if target user exists in database
       const targetUser = await userManager.getUserByPhone(normalizedPhone);
-      
-      if (!targetUser) {
-        console.log(`❌ Target user ${normalizedPhone} not found in database`);
+        if (!targetUser) {
+        logger.user(`Target user ${normalizedPhone} not found in database`, {
+          targetPhone: normalizedPhone,
+          userId: message.sender.id
+        });
         await client.reply(
           message.chatId,
           '❌ *Pengguna Tidak Ditemukan*\n\n' +
@@ -206,19 +216,28 @@ const setlimit: Command = {
           message.id
         );
         return;
-      }
-
-      // Get current limit info
+      }      // Get current limit info
       const currentUsage = await userManager.getOrCreateUsage(targetUser.id, feature);
       const oldLimit = currentUsage.customLimit || 'Default';
       
-      console.log(`🔄 Setting custom limit for user ${normalizedPhone}, feature ${feature}: ${oldLimit} -> ${limitAmount}`);
+      logger.user(`Setting custom limit for user ${normalizedPhone}, feature ${feature}: ${oldLimit} -> ${limitAmount}`, {
+        targetPhone: normalizedPhone,
+        feature,
+        oldLimit,
+        newLimit: limitAmount,
+        userId: message.sender.id
+      });
       
       // Set custom limit
       const updatedUsage = await userManager.setCustomLimit(targetUser.id, feature, limitAmount);
       
       if (!updatedUsage) {
-        console.error(`❌ Failed to set custom limit for ${normalizedPhone}`);
+        logger.error(`Failed to set custom limit for ${normalizedPhone}`, {
+          targetPhone: normalizedPhone,
+          feature,
+          limitAmount,
+          userId: message.sender.id
+        });
         await client.reply(
           message.chatId,
           '❌ *Gagal Mengatur Limit*\n\n' +
@@ -227,19 +246,23 @@ const setlimit: Command = {
           message.id
         );
         return;
-      }
-
-      // Get user display name for messages
+      }      // Get user display name for messages
       let userName = 'Pengguna';
       try {
         const contact = await client.getContact(targetUserId as ContactId);
         userName = contact.pushname || contact.name || contact.shortName || targetUser.phoneNumber;
       } catch (contactError) {
-        console.log('ℹ️ Could not fetch contact info, using phone number');
+        logger.debug('Could not fetch contact info, using phone number');
         userName = targetUser.phoneNumber;
       }
 
-      console.log(`✅ Successfully set custom limit for ${normalizedPhone}`);
+      logger.success(`Successfully set custom limit for ${normalizedPhone}`, {
+        targetPhone: normalizedPhone,
+        feature,
+        limitAmount,
+        oldLimit,
+        userId: message.sender.id
+      });
 
       // Send success message with comprehensive information
       const successMessage = `✅ *Limit Custom Berhasil Ditetapkan*\n\n` +
@@ -273,17 +296,26 @@ const setlimit: Command = {
                 : '📝 *Limit Anda telah diatur ulang*\n\n_Gunakan dengan bijak._'
             }\n\n` +
             `_Perubahan oleh: Administrator ${config.botName}_`;
-          
-          await client.sendText(targetUserId as any, userNotification);
-          console.log(`📨 Limit notification sent to ${normalizedPhone}`);
+            await client.sendText(targetUserId as any, userNotification);
+          logger.info(`Limit notification sent to ${normalizedPhone}`, {
+            targetPhone: normalizedPhone,
+            feature,
+            limitAmount
+          });
         } catch (notificationError) {
-          console.error('❌ Failed to send limit notification:', notificationError);
-          // Don't fail the main operation
+          logger.error('Failed to send limit notification', {
+            targetPhone: normalizedPhone,
+            error: notificationError instanceof Error ? notificationError.message : String(notificationError)
+          });          // Don't fail the main operation
         }
       }, 1500); // 1.5 second delay
 
     } catch (error) {
-      console.error('❌ Error in setlimit command:', error);
+      logger.error('Error in setlimit command', {
+        userId: message.sender.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling
       let errorMessage = 'Terjadi kesalahan saat mengatur limit pengguna.';
@@ -298,7 +330,10 @@ const setlimit: Command = {
         } else if (error.message.includes('feature')) {
           errorMessage = 'Feature yang ditentukan tidak valid atau tidak didukung.';
         }
-        console.error('SetLimit error details:', error.message);
+        logger.debug('SetLimit error details', {
+          message: error.message,
+          userId: message.sender.id
+        });
       }
       
       try {
@@ -308,7 +343,10 @@ const setlimit: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send setlimit error message:', replyError);
+        logger.error('Failed to send setlimit error message', {
+          userId: message.sender.id,
+          error: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

@@ -5,6 +5,7 @@ import * as userManager from '../utils/userManager';
 import { formatBox, formatNumber } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Limit Command
@@ -27,13 +28,18 @@ const limit: Command = {
    * @param args - Command arguments (unused for limit)
    * @param client - WhatsApp client instance
    * @param user - User database object
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`📊 Processing limit command from ${message.sender.id}`);
+      logger.command('Processing limit command', {
+        userId: message.sender.id,
+        command: 'limit'
+      });
         // Validate user registration
       if (!user) {
-        console.log(`❌ Unregistered user ${message.sender.id} attempted to check limits`);
+        logger.debug('Unregistered user attempted to check limits', {
+          userId: message.sender.id,
+          command: 'limit'
+        });
         await client.reply(
           message.chatId,
           getText('user.not_registered'),
@@ -46,7 +52,12 @@ const limit: Command = {
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isAdmin = user.level >= UserLevel.ADMIN;
       
-      console.log(`📈 Fetching usage data for user ${user.id} (${UserLevel[user.level]})`);
+      logger.info('Fetching usage data for user', {
+        userId: user.id,
+        userLevel: UserLevel[user.level],
+        isOwner,
+        isAdmin
+      });
 
       // Get all usage records for the user
       const usages = await Usage.findAll({ 
@@ -146,34 +157,48 @@ const limit: Command = {
         limitText += '• Gunakan fitur secara bijak\n';
         limitText += '• Limit direset setiap hari\n';
         limitText += '• Upgrade untuk akses lebih luas';
-      }
-
-      // Format the complete message
+      }      // Format the complete message
       const completeMessage = userInfo + limitText;
       const formattedMessage = formatBox('INFORMASI LIMIT', completeMessage);
 
-      console.log(`✅ Sending limit information to user ${user.id}`);
+      logger.success('Sending limit information to user', {
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        userLevel: UserLevel[user.level]
+      });
       
       // Send the limit information
       await client.reply(message.chatId, formattedMessage, message.id);
 
       // Log usage statistics for monitoring
       const totalUsage = usages.reduce((sum, usage) => sum + usage.count, 0);
-      console.log(`📊 User ${user.id} total usage: ${totalUsage}, level: ${UserLevel[user.level]}`);
+      logger.debug('User usage statistics', {
+        userId: user.id,
+        totalUsage,
+        userLevel: UserLevel[user.level],
+        usageCount: usages.length
+      });
 
     } catch (error) {
-      console.error('❌ Error in limit command:', error);
+      logger.error('Error in limit command', {
+        userId: message.sender.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling
       let errorMessage = 'Terjadi kesalahan saat mendapatkan informasi limit.';
-      
-      if (error instanceof Error) {
+        if (error instanceof Error) {
         if (error.message.includes('database')) {
           errorMessage = 'Kesalahan database saat mengambil data penggunaan.';
         } else if (error.message.includes('user')) {
           errorMessage = 'Data pengguna tidak valid atau tidak ditemukan.';
         }
-        console.error('Limit error details:', error.message);
+        logger.debug('Limit error details', {
+          userId: message.sender.id,
+          errorMessage: error.message,
+          errorType: error.constructor.name
+        });
       }
       
       try {
@@ -183,7 +208,11 @@ const limit: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send limit error message:', replyError);
+        logger.error('Failed to send limit error message', {
+          userId: message.sender.id,
+          originalError: error instanceof Error ? error.message : String(error),
+          replyError: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },

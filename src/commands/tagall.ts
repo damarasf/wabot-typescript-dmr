@@ -3,6 +3,7 @@ import { User, UserLevel, FeatureType } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Tag All Command
@@ -26,14 +27,17 @@ const tagall: Command = {
    * @param args - Command arguments [optional: custom_message]
    * @param client - WhatsApp client instance
    * @param user - User database object for permission and limit checks
-   */
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`🏷️ Processing tagall command from ${message.sender.id} in group ${message.chatId}`);
+      logger.command(`tagall from ${message.sender.id} in group ${message.chatId}`, {
+        userId: message.sender.id,
+        chatId: message.chatId,
+        args
+      });
       
       // Validate group context
       if (!message.isGroupMsg) {
-        console.log('❌ Tagall command used outside group context');
+        logger.debug('Tagall command used outside group context');
         await client.reply(
           message.chatId,
           '❌ Perintah ini hanya dapat digunakan di dalam grup.\n\n' +
@@ -45,7 +49,7 @@ const tagall: Command = {
       
       // Validate user registration
       if (!user) {
-        console.log(`❌ Unregistered user ${message.sender.id} attempted tagall`);
+        logger.user(`Unregistered user ${message.sender.id} attempted tagall`);
         await client.reply(
           message.chatId,
           '❌ Anda belum terdaftar.\n\n' +
@@ -60,11 +64,10 @@ const tagall: Command = {
       if (!hasPermission) {
         return; // Permission check handles its own error message
       }
-      
-      // Check usage limits
+        // Check usage limits
       const limitInfo = await userManager.checkLimit(user, FeatureType.TAG_ALL);
       if (limitInfo.hasReachedLimit) {
-        console.log(`⚠️ User ${message.sender.id} reached tagall limit: ${limitInfo.currentUsage}/${limitInfo.maxUsage}`);
+        logger.user(`User ${message.sender.id} reached tagall limit: ${limitInfo.currentUsage}/${limitInfo.maxUsage}`);
         await client.reply(
           message.chatId,
           `⚠️ *Batas Penggunaan Tercapai*\n\n` +
@@ -79,7 +82,7 @@ const tagall: Command = {
       // Get group information
       const groupMetadata = message.chat.groupMetadata;
       if (!groupMetadata) {
-        console.error('❌ Could not retrieve group metadata');
+        logger.error('Could not retrieve group metadata', { chatId: message.chatId });
         await client.reply(
           message.chatId,
           '❌ Tidak dapat mengambil informasi grup.\n\n' +
@@ -95,10 +98,13 @@ const tagall: Command = {
       try {
         groupName = message.chat.name || message.chat.contact?.name || 'Unknown Group';
       } catch {
-        groupName = 'Unknown Group';
-      }
+        groupName = 'Unknown Group';      }
       
-      console.log(`👥 Found ${groupMembers.length} members in group ${groupName}`);
+      logger.info(`Found ${groupMembers.length} members in group ${groupName}`, {
+        groupId: message.chatId,
+        memberCount: groupMembers.length,
+        groupName
+      });
       
       // Validate group has members
       if (groupMembers.length === 0) {
@@ -117,14 +123,23 @@ const tagall: Command = {
       // Create comprehensive tag message
       const finalMessage = formatTagMessage(customMessage, mentions, groupName, message.sender.pushname);
       
-      console.log(`📢 Tagging ${mentionIds.length} members with message: "${customMessage}"`);
+      logger.command(`Tagging ${mentionIds.length} members with message: "${customMessage}"`, {
+        userId: message.sender.id,
+        groupId: message.chatId,
+        memberCount: mentionIds.length,
+        message: customMessage
+      });
       
       // Send message with mentions
       await client.sendTextWithMentions(message.chatId, finalMessage);
       
       // Increment usage count
       await userManager.incrementUsage(user.id, FeatureType.TAG_ALL);
-      console.log(`✅ Successfully tagged all members and incremented usage for user ${user.id}`);
+      logger.success(`Successfully tagged all members and incremented usage for user ${user.id}`, {
+        userId: user.id,
+        groupId: message.chatId,
+        memberCount: mentionIds.length
+      });
       
       // Send confirmation message after a short delay
       setTimeout(async () => {
@@ -136,15 +151,23 @@ const tagall: Command = {
             `📊 *Penggunaan:* ${limitInfo.currentUsage + 1}/${limitInfo.maxUsage}\n` +
             `⏰ *Waktu:* ${new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
             message.id
-          );
-        } catch (confirmError) {
-          console.error('❌ Failed to send confirmation message:', confirmError);
+          );        } catch (confirmError) {
+          logger.error('Failed to send confirmation message', {
+            userId: message.sender.id,
+            groupId: message.chatId,
+            error: confirmError instanceof Error ? confirmError.message : String(confirmError)
+          });
           // Don't fail the whole operation
         }
       }, 1000); // 1 second delay
       
     } catch (error) {
-      console.error('❌ Error in tagall command:', error);
+      logger.error('Error in tagall command', {
+        userId: message.sender.id,
+        groupId: message.chatId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling
       let errorMessage = 'Terjadi kesalahan saat menandai semua anggota grup.';
@@ -157,17 +180,23 @@ const tagall: Command = {
         } else if (error.message.includes('group')) {
           errorMessage = 'Terjadi kesalahan saat mengakses informasi grup.';
         }
-        console.error('TagAll error details:', error.message);
+        logger.debug('TagAll error details', {
+          message: error.message,
+          userId: message.sender.id
+        });
       }
       
       try {
         await client.reply(
           message.chatId,
           `❌ ${errorMessage}\n\n_Silakan coba lagi nanti atau hubungi administrator._`,
-          message.id
-        );
+          message.id        );
       } catch (replyError) {
-        console.error('❌ Failed to send tagall error message:', replyError);
+        logger.error('Failed to send tagall error message', {
+          userId: message.sender.id,
+          groupId: message.chatId,
+          error: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },
@@ -193,7 +222,13 @@ async function checkTagAllPermissions(message: Message, user: User, client: Clie
     // Check if user has Admin level
     const isAdminLevel = user && user.level >= UserLevel.ADMIN;
     
-    console.log(`🔐 Permission check for ${message.sender.id}: GroupAdmin=${isGroupAdmin}, Owner=${isOwner}, AdminLevel=${isAdminLevel}`);
+    logger.debug(`Permission check for ${message.sender.id}`, {
+      userId: message.sender.id,
+      isGroupAdmin,
+      isOwner,
+      isAdminLevel,
+      groupId: message.chatId
+    });
     
     // Allow usage by: group admins, bot owner, or users with Admin level
     if (!isGroupAdmin && !isOwner && !isAdminLevel) {
@@ -209,10 +244,13 @@ async function checkTagAllPermissions(message: Message, user: User, client: Clie
       );
       return false;
     }
-    
-    return true;
+      return true;
   } catch (error) {
-    console.error('❌ Error checking tagall permissions:', error);
+    logger.error('Error checking tagall permissions', {
+      userId: message.sender.id,
+      groupId: message.chatId,
+      error: error instanceof Error ? error.message : String(error)
+    });
     return false;
   }
 }

@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import moment from 'moment-timezone';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Reminder Command
@@ -30,7 +31,10 @@ const reminder: Command = {
    */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     // Validate user registration
     if (!user) {
-      console.log(`❌ Unregistered user attempted to use reminder: ${message.sender.id}`);
+      logger.debug('Unregistered user attempted to use reminder', {
+        userId: message.sender.id,
+        command: 'reminder'
+      });
       await client.reply(
         message.chatId,
         '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
@@ -38,14 +42,22 @@ const reminder: Command = {
       );
       return;
     }
-    
-    try {
-      console.log(`📝 Processing reminder command for user ${user.phoneNumber}`);
+      try {
+      logger.command('Processing reminder command for user', {
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        args: args.length
+      });
       
       // Check user limit for Reminder feature
       const limitInfo = await userManager.checkLimit(user, FeatureType.REMINDER);
       if (limitInfo.hasReachedLimit) {
-        console.log(`⚠️ User ${user.phoneNumber} has reached reminder limit: ${limitInfo.currentUsage}/${limitInfo.maxUsage}`);
+        logger.debug('User has reached reminder limit', {
+          userId: user.id,
+          phoneNumber: user.phoneNumber,
+          currentUsage: limitInfo.currentUsage,
+          maxUsage: limitInfo.maxUsage
+        });
         await client.reply(
           message.chatId,
           `⚠️ Anda telah mencapai batas penggunaan fitur Reminder (${limitInfo.currentUsage}/${limitInfo.maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium untuk mendapatkan limit lebih tinggi.`,
@@ -57,9 +69,11 @@ const reminder: Command = {
       // Extract and validate time argument
       const timeArg = args[0].toLowerCase();
       const scheduledTime = parseTime(timeArg);
-      
-      if (!scheduledTime) {
-        console.log(`❌ Invalid time format provided: ${timeArg}`);
+        if (!scheduledTime) {
+        logger.debug('Invalid time format provided', {
+          userId: user.id,
+          timeArg: timeArg
+        });
         await client.reply(
           message.chatId,
           '❌ Format waktu tidak valid. Gunakan format seperti: 30s, 10m, 2h, 1d\n\n' +
@@ -97,9 +111,12 @@ const reminder: Command = {
               joinedAt: new Date(),
             },
           });
-          groupDatabaseId = group.id;
-        } catch (groupError) {
-          console.error('❌ Error handling group record:', groupError);
+          groupDatabaseId = group.id;        } catch (groupError) {
+          logger.error('Error handling group record', {
+            userId: user.id,
+            chatId: message.chatId,
+            error: groupError instanceof Error ? groupError.message : String(groupError)
+          });
           // Continue with null groupId for personal reminder fallback
         }
       }
@@ -120,7 +137,13 @@ const reminder: Command = {
       const formattedTime = scheduledTime.format('HH:mm:ss DD/MM/YYYY');
       const contextText = isGroup ? 'grup ini' : 'Anda secara personal';
       
-      console.log(`✅ Reminder created successfully - ID: ${reminder.id}, User: ${user.phoneNumber}, Time: ${formattedTime}`);
+      logger.success('Reminder created successfully', {
+        reminderId: reminder.id,
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        scheduledTime: formattedTime,
+        isGroup: isGroup
+      });
       
       await client.reply(
         message.chatId,
@@ -131,9 +154,13 @@ const reminder: Command = {
         `_ID Reminder: ${reminder.id}_`,
         message.id
       );
-      
-    } catch (error) {
-      console.error('❌ Error creating reminder:', error);
+        } catch (error) {
+      logger.error('Error creating reminder', {
+        userId: user.id,
+        phoneNumber: user.phoneNumber,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Enhanced error handling with specific error types
       let errorMessage = 'Terjadi kesalahan saat membuat reminder. Silakan coba lagi nanti.';
@@ -144,13 +171,21 @@ const reminder: Command = {
         } else if (error.message.includes('database')) {
           errorMessage = 'Terjadi kesalahan database. Silakan coba lagi dalam beberapa saat.';
         }
-        console.error('Error details:', error.message);
+        logger.debug('Reminder error details', {
+          userId: user.id,
+          errorMessage: error.message,
+          errorType: error.constructor.name
+        });
       }
       
       try {
         await client.reply(message.chatId, `❌ ${errorMessage}`, message.id);
       } catch (replyError) {
-        console.error('❌ Failed to send error message:', replyError);
+        logger.error('Failed to send reminder error message', {
+          userId: user.id,
+          originalError: error instanceof Error ? error.message : String(error),
+          replyError: replyError instanceof Error ? replyError.message : String(replyError)
+        });
       }
     }
   },
@@ -171,9 +206,10 @@ function parseTime(timeString: string): moment.Moment | null {
   // Regex pattern for time format: number + unit (s/m/h/d)
   const timeRegex = /^(\d+)([smhd])$/i;
   const match = timeString.trim().match(timeRegex);
-  
-  if (!match) {
-    console.log(`❌ Invalid time format: ${timeString}`);
+    if (!match) {
+    logger.debug('Invalid time format in parseTime', {
+      timeString: timeString
+    });
     return null;
   }
   
@@ -187,9 +223,12 @@ function parseTime(timeString: string): moment.Moment | null {
     h: { max: 168, name: 'hours' },     // Max 1 week in hours
     d: { max: 30, name: 'days' },       // Max 30 days
   };
-  
-  if (value <= 0 || value > limits[unit as keyof typeof limits].max) {
-    console.log(`❌ Time value out of range: ${value}${unit}`);
+    if (value <= 0 || value > limits[unit as keyof typeof limits].max) {
+    logger.debug('Time value out of range in parseTime', {
+      value: value,
+      unit: unit,
+      timeString: timeString
+    });
     return null;
   }
   // Calculate scheduled time
@@ -204,13 +243,20 @@ function parseTime(timeString: string): moment.Moment | null {
       case 'h': // hours
         return now.add(value, 'hours');
       case 'd': // days
-        return now.add(value, 'days');
-      default:
-        console.log(`❌ Unsupported time unit: ${unit}`);
+        return now.add(value, 'days');      default:
+        logger.debug('Unsupported time unit in parseTime', {
+          unit: unit,
+          timeString: timeString
+        });
         return null;
     }
   } catch (error) {
-    console.error('❌ Error calculating scheduled time:', error);
+    logger.error('Error calculating scheduled time in parseTime', {
+      timeString: timeString,
+      unit: unit,
+      value: value,
+      error: error instanceof Error ? error.message : String(error)
+    });
     return null;
   }
 }
