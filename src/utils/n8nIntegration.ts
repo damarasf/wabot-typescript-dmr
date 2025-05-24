@@ -49,8 +49,7 @@ export async function executeWorkflow({
     if (!config.n8nUrl || !config.n8nToken) {
       throw new Error('N8N configuration missing (URL or token)');
     }
-    
-    logger.info('Executing N8N workflow', { workflowId, dataKeys: Object.keys(data) });
+      logger.info('Executing N8N workflow', { workflowId });
     
     // Prepare request
     const url = `${config.n8nUrl}/api/v1/workflows/${workflowId}/execute`;
@@ -67,14 +66,16 @@ export async function executeWorkflow({
       timeout,
       validateStatus: (status) => status < 500, // Don't throw on 4xx errors
     });
-    
-    // Handle different response statuses
+      // Handle different response statuses
     if (response.status === 200 || response.status === 201) {
-      logger.info('N8N workflow executed successfully', { 
-        workflowId, 
-        executionId: response.data?.executionId,
-        status: response.status 
-      });
+      // Only log detailed info if debug level is enabled
+      if (process.env.LOG_LEVEL === 'debug') {
+        logger.info('N8N workflow executed successfully', { 
+          workflowId, 
+          executionId: response.data?.executionId,
+          status: response.status 
+        });
+      }
       return {
         success: true,
         data: response.data,
@@ -139,8 +140,7 @@ export async function executeWebhook({
     if (!config.n8nUrl) {
       throw new Error('N8N URL configuration missing');
     }
-    
-    logger.info('Executing N8N webhook', { webhookPath, dataKeys: Object.keys(data) });
+      logger.info('Executing N8N webhook', { webhookPath });
     
     // Clean webhook path (remove leading slash if present)
     const cleanPath = webhookPath.startsWith('/') ? webhookPath.slice(1) : webhookPath;
@@ -153,13 +153,15 @@ export async function executeWebhook({
       timeout,
       validateStatus: (status) => status < 500, // Don't throw on 4xx errors
     });
-    
-    // Handle different response statuses
+      // Handle different response statuses
     if (response.status === 200 || response.status === 201) {
-      logger.info('N8N webhook executed successfully', { 
-        webhookPath, 
-        status: response.status 
-      });
+      // Only log detailed info if debug level is enabled
+      if (process.env.LOG_LEVEL === 'debug') {
+        logger.info('N8N webhook executed successfully', { 
+          webhookPath, 
+          status: response.status 
+        });
+      }
       return {
         success: true,
         data: response.data,

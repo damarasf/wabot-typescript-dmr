@@ -7,11 +7,8 @@ import config from './utils/config';
 import { log } from './utils/logger';
 
 // Main bot initialization
-const start = async (client: Client) => {
-  log.system('WhatsApp Bot DMR started successfully!');
-  log.info(`Bot Name: ${config.botName}`);
-  log.info(`Owner: ${config.ownerNumber}`);
-  log.info(`Prefixes: ${config.prefixes.join(', ')}`);
+const start = async (client: Client) => {  
+  log.system(`Bot: ${config.botName} | Owner: ${config.ownerNumber}`);
   
   // Initialize database
   try {
@@ -20,7 +17,9 @@ const start = async (client: Client) => {
   } catch (error) {
     log.error('Failed to initialize database', error);
     process.exit(1);
-  }  // Initialize command handler
+  }
+  
+  // Initialize command handler
   await commandHandler.loadCommands();
   log.success('Command handler initialized');
 
@@ -35,7 +34,9 @@ const start = async (client: Client) => {
     } catch (error) {
       log.error('Error handling message', error);
     }
-  });  // Handle call events if anti-call is enabled
+  });  
+  
+  // Handle call events if anti-call is enabled
   if (config.antiCall) {
     client.onIncomingCall(async (call: any) => {
       try {
@@ -49,6 +50,7 @@ const start = async (client: Client) => {
       }
     });
   }
+
   // Handle message deletion if anti-delete is enabled
   if (config.antiDelete) {
     client.onAnyMessage(async (message: any) => {
@@ -63,6 +65,7 @@ const start = async (client: Client) => {
       }
     });
   }
+
   // Auto restart functionality
   if (config.autoRestartTime > 0) {
     setTimeout(async () => {
@@ -71,6 +74,7 @@ const start = async (client: Client) => {
       process.exit(0);
     }, config.autoRestartTime);
   }
+
 };
 
 // Create WhatsApp client
@@ -113,5 +117,4 @@ process.on('unhandledRejection', (reason, promise) => {
   log.error('Unhandled Rejection', { reason, promise });
 });
 
-log.system('Starting WhatsApp Bot DMR...');
 log.info('Please scan the QR code with your WhatsApp to continue...');

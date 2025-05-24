@@ -197,18 +197,22 @@ export const broadcastCommand: Command = {
             `🤖 _Pesan dari ${config.botName}_\n` +
             `⏰ _${currentTime}_`
           );
-          
-          // Send message          await client.sendText(`${user.phoneNumber}@c.us` as ContactId, finalMessage);
+                    
+          // Send message          
+          await client.sendText(`${user.phoneNumber}@c.us` as ContactId, finalMessage);
           successCount++;
           
-          log.debug(`Broadcast sent to ${user.phoneNumber} (${successCount}/${users.length})`);
+          // Remove debug logging for performance - this happens frequently
         } catch (error) {
           const errorMessage = (error as Error).message?.toLowerCase() || '';
           
           if (errorMessage.includes('blocked') || errorMessage.includes('not found')) {
             blockedUsers.push(user.phoneNumber);
             blockedCount++;
-            log.warn(`Broadcast blocked by ${user.phoneNumber}: ${(error as Error).message || 'Unknown error'}`);
+            // Only log blocked users in debug mode
+            if (process.env.LOG_LEVEL === 'debug') {
+              log.warn(`Broadcast blocked by ${user.phoneNumber}: ${(error as Error).message || 'Unknown error'}`);
+            }
           } else {
             failedUsers.push(user.phoneNumber);
             failedCount++;
@@ -231,7 +235,7 @@ export const broadcastCommand: Command = {
               ),
               message.id            );
           } catch (updateError) {
-            log.debug(`Broadcast progress update failed: ${(updateError as Error).message || 'Unknown error'}`);
+            // Remove debug logging for performance - progress update errors are not critical
           }
         }
 

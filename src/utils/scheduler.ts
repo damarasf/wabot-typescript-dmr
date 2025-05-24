@@ -49,8 +49,7 @@ export function initScheduler(client: Client): void {
 async function processReminders(client: Client): Promise<void> {
   try {
     const now = moment.tz(TIMEZONE);
-    
-    // Find all active reminders due in the current minute
+      // Find all active reminders due in the current minute
     const dueReminders = await Reminder.findAll({
       where: {
         isActive: true,
@@ -64,7 +63,10 @@ async function processReminders(client: Client): Promise<void> {
     });
       if (dueReminders.length === 0) return;
     
-    log.info(`Processing ${dueReminders.length} due reminders...`);
+    // Only log when processing reminders
+    if (process.env.LOG_LEVEL === 'debug') {
+      log.info(`Processing ${dueReminders.length} due reminders...`);
+    }
     
     // Process each reminder
     for (const reminder of dueReminders) {
@@ -77,12 +79,14 @@ async function processReminders(client: Client): Promise<void> {
       } else {
         // This is a personal reminder - send to user's phone
         await client.sendText(String(reminder.userId) as any, reminderText);
-      }
-        // Mark the reminder as completed
+      }      // Mark the reminder as completed
       reminder.isCompleted = true;
       await reminder.save();
       
-      log.success(`Sent reminder #${reminder.id} to ${reminder.groupId ? 'group' : 'user'}`);
+      // Only log successful reminder delivery if debug level is enabled
+      if (process.env.LOG_LEVEL === 'debug') {
+        log.success(`Sent reminder #${reminder.id} to ${reminder.groupId ? 'group' : 'user'}`);
+      }
     }
   } catch (error) {
     log.error('Error processing reminders', error);

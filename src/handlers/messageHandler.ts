@@ -18,15 +18,20 @@ export async function handleMessage(client: Client, message: Message): Promise<v
     const parsedCommand = await parseCommand(message);
     if (!parsedCommand) return;
     
-    const { command: commandInfo, args, user } = parsedCommand;
-      // Find the command in the handler
+    const { command: commandInfo, args, user } = parsedCommand;    // Find the command in the handler
     const command = getCommand(commandInfo.name);
     if (!command) {
-      log.warn(`Command not found in handler: ${commandInfo.name}`);
+      // Only log if debug level is enabled
+      if (process.env.LOG_LEVEL === 'debug') {
+        log.warn(`Command not found in handler: ${commandInfo.name}`);
+      }
       return;
     }
     
-    log.command(`Executing command: ${command.name} by ${message.sender.id}`);
+    // Only log command execution if debug level is enabled
+    if (process.env.LOG_LEVEL === 'debug') {
+      log.command(`Executing command: ${command.name} by ${message.sender.id}`);
+    }
     
     // Execute the command
     await command.execute(message, args, client, user);
@@ -48,21 +53,26 @@ export async function handleMessage(client: Client, message: Message): Promise<v
 export async function handleGroupJoin(client: Client, groupId: string, groupName: string): Promise<void> {
   try {
     // Check if group already exists in database
-    const existingGroup = await Group.findOne({ where: { groupId } });
-      if (!existingGroup) {
+    const existingGroup = await Group.findOne({ where: { groupId } });    if (!existingGroup) {
       // Create new group record (removed name field)
       await Group.create({
         groupId,
         joinedAt: new Date(),
         isActive: true,      });
       
-      log.info(`Joined new group: ${groupName}`, { groupId });
+      // Only log in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        log.info(`Joined new group: ${groupName}`, { groupId });
+      }
     } else if (!existingGroup.isActive) {
       // Update group if it was previously inactive (removed name update)
       existingGroup.isActive = true;
       await existingGroup.save();
       
-      log.info(`Rejoined group: ${groupName}`, { groupId });
+      // Only log in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        log.info(`Rejoined group: ${groupName}`, { groupId });
+      }
     }
       // Send welcome message
     await client.sendText(
@@ -77,12 +87,14 @@ export async function handleGroupJoin(client: Client, groupId: string, groupName
 export async function handleGroupLeave(client: Client, groupId: string): Promise<void> {
   try {
     // Update group status in database
-    const group = await Group.findOne({ where: { groupId } });
-      if (group) {
+    const group = await Group.findOne({ where: { groupId } });    if (group) {
       group.isActive = false;
       await group.save();
       
-      log.info(`Left group`, { groupId });
+      // Only log in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        log.info(`Left group`, { groupId });
+      }
     }
   } catch (error) {
     log.error('Error handling group leave', error);

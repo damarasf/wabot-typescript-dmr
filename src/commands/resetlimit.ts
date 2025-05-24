@@ -56,10 +56,12 @@ export const resetlimitCommand: Command = {
       }
 
       const startTime = Date.now();
-      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-        // Handle "all" reset with confirmation
+      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });      // Handle "all" reset with confirmation
       if (args[0].toLowerCase() === 'all') {
-        log.info(`Reset all limits initiated by admin: ${message.sender.id}`);
+        // Only log in debug mode to reduce I/O
+        if (process.env.LOG_LEVEL === 'debug') {
+          log.info(`Reset all limits initiated by admin: ${message.sender.id}`);
+        }
         
         // Get total count before reset
         const totalUsages = await Usage.count();
@@ -132,11 +134,17 @@ export const resetlimitCommand: Command = {
           ),
           message.id        );
 
-        log.success(`Reset all completed: ${resetCount} usages reset by ${message.sender.id} in ${processingTime}s`);
+        // Only log in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          log.success(`Reset all completed: ${resetCount} usages reset by ${message.sender.id} in ${processingTime}s`);
+        }
         return;
       }      // Handle mentions (multiple users)
       if (message.mentionedJidList && message.mentionedJidList.length > 0) {
-        log.info(`Reset mentions processing ${message.mentionedJidList.length} mentions by admin: ${message.sender.id}`);
+        // Only log in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          log.info(`Reset mentions processing ${message.mentionedJidList.length} mentions by admin: ${message.sender.id}`);
+        }
         
         let resetCount = 0;
         let notFoundCount = 0;
@@ -181,7 +189,8 @@ export const resetlimitCommand: Command = {
                 const contact = await client.getContact(mentionedJid as ContactId);
                 displayName = contact.name || contact.pushname || phoneNumber;
               } catch (contactError) {
-                log.debug(`Could not fetch contact info for ${phoneNumber}: ${(contactError as Error).message || 'Unknown error'}`);
+                // Remove debug logging for performance
+                // Contact info fetching failures are not critical
               }
 
               resetResults.push(`✅ ${displayName} (${usageCount} data)`);
@@ -259,7 +268,7 @@ export const resetlimitCommand: Command = {
             const contact = await client.getContact(`${normalizedPhone}@c.us` as ContactId);
             displayName = contact.name || contact.pushname || normalizedPhone;
           } catch (contactError) {
-            log.debug(`Could not fetch contact info for ${normalizedPhone}: ${(contactError as Error).message || 'Unknown error'}`);
+            // Contact info fetching failure is not critical, skip logging
           }
 
           const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);

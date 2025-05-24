@@ -46,6 +46,7 @@ export async function createUser(phone: string): Promise<User> {
 export async function updateUserActivity(user: User): Promise<void> {
   try {    user.lastActivity = new Date();
     await user.save();
+    // Remove logging for performance - this happens very frequently
   } catch (error) {
     log.error('Error updating user activity', error);
   }
@@ -86,7 +87,10 @@ export async function incrementUsage(userId: number, feature: FeatureType): Prom
     const usage = await getOrCreateUsage(userId, feature);    usage.count += 1;
     await usage.save();
     
-    log.debug(`Usage incremented for user ${userId}, feature ${feature}: ${usage.count}`);
+    // Only log debug information if debug level is enabled
+    if (process.env.LOG_LEVEL === 'debug') {
+      log.debug(`Usage incremented for user ${userId}, feature ${feature}: ${usage.count}`);
+    }
     return usage;
   } catch (error) {
     log.error('Error incrementing usage', error);

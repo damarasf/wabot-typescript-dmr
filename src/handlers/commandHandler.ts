@@ -17,10 +17,12 @@ export async function loadCommands(): Promise<void> {
       // Import command dynamically
       const commandModule = await import(path.join(__dirname, '../commands', file));
       const command = commandModule.default;
-        if (command && command.name) {
-        // Add command to collection
+        if (command && command.name) {        // Add command to collection
         commands.set(command.name, command);
-        log.success(`Loaded command: ${command.name}`);
+        // Only log if debug level is enabled
+        if (process.env.LOG_LEVEL === 'debug') {
+          log.success(`Loaded command: ${command.name}`);
+        }
       } else {
         log.warn(`Invalid command file: ${file}`);
       }
