@@ -2,7 +2,7 @@ import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel, Usage, FeatureType } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
-import { formatBox, formatNumber } from '../utils/formatter';
+import { formatNumber } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
@@ -159,7 +159,7 @@ const limit: Command = {
         limitText += '• Upgrade untuk akses lebih luas';
       }      // Format the complete message
       const completeMessage = userInfo + limitText;
-      const formattedMessage = formatBox('INFORMASI LIMIT', completeMessage);
+      const formattedMessage = `*📊 INFORMASI LIMIT*\n\n${completeMessage}`;
 
       logger.success('Sending limit information to user', {
         userId: user.id,

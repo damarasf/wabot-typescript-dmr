@@ -1,7 +1,6 @@
 import { Client, Message, ContactId } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
 import { User, Usage } from '../database/models';
-import formatMessage from '../utils/formatter';
 import { log } from '../utils/logger';
 
 /**
@@ -38,25 +37,25 @@ export const resetlimitCommand: Command = {
       if (args.length === 0) {
         await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '📋 Reset Limit - Panduan',
-            '🎯 **Pilih Mode Reset:**\n\n' +
-            '🌍 `resetlimit all` - Reset semua pengguna\n' +
-            '👤 `resetlimit @user` - Reset pengguna ter-mention\n' +
-            '📱 `resetlimit 628123456789` - Reset dengan nomor\n\n' +
-            '⚠️ **Perhatian:**\n' +
-            '• Mode "all" akan reset SEMUA pengguna\n' +
-            '• Operasi ini tidak dapat dibatalkan\n' +
-            '• Gunakan dengan hati-hati\n\n' +
-            '💡 **Tips:** Mention pengguna untuk reset individual'
-          ),
+          `*📋 Reset Limit - Panduan*\n\n` +
+            `🎯 *Pilih Mode Reset:*\n\n` +
+            `🌍 \`resetlimit all\` - Reset semua pengguna\n` +
+            `👤 \`resetlimit @user\` - Reset pengguna ter-mention\n` +
+            `📱 \`resetlimit 628123456789\` - Reset dengan nomor\n\n` +
+            `⚠️ *Perhatian:*\n` +
+            `• Mode "all" akan reset SEMUA pengguna\n` +
+            `• Operasi ini tidak dapat dibatalkan\n` +
+            `• Gunakan dengan hati-hati\n\n` +
+            `💡 *Tips:* Mention pengguna untuk reset individual`,
           message.id
         );
         return;
       }
 
       const startTime = Date.now();
-      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });      // Handle "all" reset with confirmation
+      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+      // Handle "all" reset with confirmation
       if (args[0].toLowerCase() === 'all') {
         // Only log in debug mode to reduce I/O
         if (process.env.LOG_LEVEL === 'debug') {
@@ -70,14 +69,12 @@ export const resetlimitCommand: Command = {
         if (totalUsages === 0) {
           await client.reply(
             message.from,
-            formatMessage.formatBox(
-              '📊 Reset Info',
-              '🔍 **Status Database:**\n\n' +
-              '✨ Tidak ada data usage untuk direset\n' +
-              '📈 Database sudah bersih\n\n' +
+            `*📊 Reset Info*\n\n` +
+              `🔍 *Status Database:*\n\n` +
+              `✨ Tidak ada data usage untuk direset\n` +
+              `📈 Database sudah bersih\n\n` +
               `👥 Total pengguna: ${totalUsers}\n` +
-              `⏰ Waktu cek: ${currentTime}`
-            ),
+              `⏰ Waktu cek: ${currentTime}`,
             message.id
           );
           return;
@@ -86,16 +83,14 @@ export const resetlimitCommand: Command = {
         // Send confirmation with detailed info
         await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '⚠️ Konfirmasi Reset ALL',
-            '🚨 **PERINGATAN PENTING!**\n\n' +
-            `📊 **Data yang akan dihapus:**\n` +
+          `*⚠️ Konfirmasi Reset ALL*\n\n` +
+            `🚨 *PERINGATAN PENTING!*\n\n` +
+            `📊 *Data yang akan dihapus:*\n` +
             `• ${totalUsages} data usage\n` +
             `• Dari ${totalUsers} pengguna terdaftar\n\n` +
-            '❌ **Operasi ini TIDAK DAPAT dibatalkan!**\n\n' +
-            '⏰ Proses reset akan dimulai dalam 10 detik...\n' +
-            '💬 Balas "CANCEL" untuk membatalkan'
-          ),
+            `❌ *Operasi ini TIDAK DAPAT dibatalkan!*\n\n` +
+            `⏰ Proses reset akan dimulai dalam 10 detik...\n` +
+            `💬 Balas "CANCEL" untuk membatalkan`,
           message.id
         );
 
@@ -105,13 +100,11 @@ export const resetlimitCommand: Command = {
         // Proceed with reset
         await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '🔄 Memproses Reset',
-            '⏳ **Sedang mereset semua data...**\n\n' +
-            '🔄 Menghapus data usage...\n' +
-            '📊 Memperbarui statistik...\n\n' +
-            '⏰ Mohon tunggu sebentar...'
-          ),
+          `*🔄 Memproses Reset*\n\n` +
+            `⏳ *Sedang mereset semua data...*\n\n` +
+            `🔄 Menghapus data usage...\n` +
+            `📊 Memperbarui statistik...\n\n` +
+            `⏰ Mohon tunggu sebentar...`,
           message.id
         );
 
@@ -121,25 +114,26 @@ export const resetlimitCommand: Command = {
         
         await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '✅ Reset Berhasil',
-            `🎉 **Reset ALL Selesai!**\n\n` +
-            `📊 **Statistik Reset:**\n` +
+          `*✅ Reset Berhasil*\n\n` +
+            `🎉 *Reset ALL Selesai!*\n\n` +
+            `📊 *Statistik Reset:*\n` +
             `• Data usage dihapus: ${resetCount}\n` +
             `• Pengguna terpengaruh: ${totalUsers}\n` +
             `• Waktu proses: ${processingTime}s\n\n` +
-            `⏰ **Waktu reset:** ${currentTime}\n` +
-            `👑 **Admin:** @${message.sender.id.replace('@c.us', '')}\n\n` +
-            `✨ Semua pengguna kini dapat menggunakan fitur kembali!`
-          ),
-          message.id        );
+            `⏰ *Waktu reset:* ${currentTime}\n` +
+            `👑 *Admin:* @${message.sender.id.replace('@c.us', '')}\n\n` +
+            `✨ Semua pengguna kini dapat menggunakan fitur kembali!`,
+          message.id
+        );
 
         // Only log in debug mode
         if (process.env.LOG_LEVEL === 'debug') {
           log.success(`Reset all completed: ${resetCount} usages reset by ${message.sender.id} in ${processingTime}s`);
         }
         return;
-      }      // Handle mentions (multiple users)
+      }
+
+      // Handle mentions (multiple users)
       if (message.mentionedJidList && message.mentionedJidList.length > 0) {
         // Only log in debug mode
         if (process.env.LOG_LEVEL === 'debug') {
@@ -154,13 +148,11 @@ export const resetlimitCommand: Command = {
         // Send processing message
         await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '🔄 Memproses Reset',
-            `⏳ **Sedang memproses ${message.mentionedJidList.length} pengguna...**\n\n` +
-            '🔍 Mencari data pengguna...\n' +
-            '🗑️ Menghapus data usage...\n\n' +
-            '⏰ Mohon tunggu sebentar...'
-          ),
+          `*🔄 Memproses Reset*\n\n` +
+            `⏳ *Sedang memproses ${message.mentionedJidList.length} pengguna...*\n\n` +
+            `🔍 Mencari data pengguna...\n` +
+            `🗑️ Menghapus data usage...\n\n` +
+            `⏰ Mohon tunggu sebentar...`,
           message.id
         );
 
@@ -185,7 +177,8 @@ export const resetlimitCommand: Command = {
               });
 
               // Try to get contact info
-              let displayName = phoneNumber;              try {
+              let displayName = phoneNumber;
+              try {
                 const contact = await client.getContact(mentionedJid as ContactId);
                 displayName = contact.name || contact.pushname || phoneNumber;
               } catch (contactError) {
@@ -197,7 +190,8 @@ export const resetlimitCommand: Command = {
               resetCount++;
             } else {
               notFoundUsers.push(`❌ ${phoneNumber} (tidak terdaftar)`);
-              notFoundCount++;            }
+              notFoundCount++;
+            }
           } catch (error) {
             log.error(`Error processing mention ${mentionedJid}`, error);
             notFoundUsers.push(`❌ ${mentionedJid.replace('@c.us', '')} (error)`);
@@ -208,30 +202,32 @@ export const resetlimitCommand: Command = {
         const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
         // Prepare result message
-        let resultMessage = `🎉 **Reset Selesai!**\n\n`;
+        let resultMessage = `🎉 *Reset Selesai!*\n\n`;
         
         if (resetCount > 0) {
-          resultMessage += `✅ **Berhasil Reset (${resetCount}):**\n`;
+          resultMessage += `✅ *Berhasil Reset (${resetCount}):*\n`;
           resultMessage += resetResults.join('\n') + '\n\n';
         }
         
         if (notFoundCount > 0) {
-          resultMessage += `⚠️ **Tidak Ditemukan (${notFoundCount}):**\n`;
+          resultMessage += `⚠️ *Tidak Ditemukan (${notFoundCount}):*\n`;
           resultMessage += notFoundUsers.join('\n') + '\n\n';
         }
 
-        resultMessage += `📊 **Ringkasan:**\n`;
+        resultMessage += `📊 *Ringkasan:*\n`;
         resultMessage += `• Total diproses: ${message.mentionedJidList.length}\n`;
         resultMessage += `• Berhasil: ${resetCount}\n`;
         resultMessage += `• Gagal: ${notFoundCount}\n`;
         resultMessage += `• Waktu proses: ${processingTime}s\n\n`;
-        resultMessage += `⏰ **Waktu:** ${currentTime}`;
+        resultMessage += `⏰ *Waktu:* ${currentTime}`;
 
         await client.reply(
           message.from,
-          formatMessage.formatBox('📊 Hasil Reset Mention', resultMessage),
+          `*📊 Hasil Reset Mention*\n\n${resultMessage}`,
           message.id
-        );        log.success(`Reset mentions completed: ${resetCount}/${message.mentionedJidList.length} users reset by ${message.sender.id}`);
+        );
+
+        log.success(`Reset mentions completed: ${resetCount}/${message.mentionedJidList.length} users reset by ${message.sender.id}`);
         return;
       }
 
@@ -264,7 +260,8 @@ export const resetlimitCommand: Command = {
           });
 
           // Try to get contact info
-          let displayName = normalizedPhone;          try {
+          let displayName = normalizedPhone;
+          try {
             const contact = await client.getContact(`${normalizedPhone}@c.us` as ContactId);
             displayName = contact.name || contact.pushname || normalizedPhone;
           } catch (contactError) {
@@ -275,37 +272,35 @@ export const resetlimitCommand: Command = {
 
           await client.reply(
             message.from,
-            formatMessage.formatBox(
-              '✅ Reset Berhasil',
-              `🎉 **Reset Selesai!**\n\n` +
-              `👤 **Pengguna:** ${displayName}\n` +
-              `📱 **Nomor:** ${normalizedPhone}\n` +
-              `🗑️ **Data dihapus:** ${usageCount} usage\n\n` +
-              `📊 **Detail:**\n` +
+            `*✅ Reset Berhasil*\n\n` +
+              `🎉 *Reset Selesai!*\n\n` +
+              `👤 *Pengguna:* ${displayName}\n` +
+              `📱 *Nomor:* ${normalizedPhone}\n` +
+              `🗑️ *Data dihapus:* ${usageCount} usage\n\n` +
+              `📊 *Detail:*\n` +
               `• Waktu proses: ${processingTime}s\n` +
               `• Status: Limit direset\n\n` +
-              `⏰ **Waktu:** ${currentTime}\n\n` +
-              `✨ Pengguna dapat menggunakan fitur kembali!`
-            ),
-            message.id          );
+              `⏰ *Waktu:* ${currentTime}\n\n` +
+              `✨ Pengguna dapat menggunakan fitur kembali!`,
+            message.id
+          );
 
           log.success(`Reset phone completed: ${normalizedPhone} (${usageCount} usages) reset by ${message.sender.id}`);
         } else {
           await client.reply(
             message.from,
-            formatMessage.formatBox(
-              '❌ Pengguna Tidak Ditemukan',
-              `🔍 **Nomor:** ${normalizedPhone}\n\n` +
-              `⚠️ **Kemungkinan Penyebab:**\n` +
+            `*❌ Pengguna Tidak Ditemukan*\n\n` +
+              `🔍 *Nomor:* ${normalizedPhone}\n\n` +
+              `⚠️ *Kemungkinan Penyebab:*\n` +
               `• Nomor belum terdaftar di bot\n` +
               `• Format nomor tidak valid\n` +
               `• Pengguna belum pernah menggunakan bot\n\n` +
-              `💡 **Tips:**\n` +
+              `💡 *Tips:*\n` +
               `• Pastikan nomor benar: ${normalizedPhone}\n` +
               `• Pengguna harus register terlebih dahulu\n` +
-              `• Gunakan format: resetlimit @user untuk mention`
-            ),
-            message.id          );
+              `• Gunakan format: resetlimit @user untuk mention`,
+            message.id
+          );
 
           log.warn(`Reset phone - user not found: ${normalizedPhone} requested by ${message.sender.id}`);
         }
@@ -315,37 +310,36 @@ export const resetlimitCommand: Command = {
       // Invalid format
       await client.reply(
         message.from,
-        formatMessage.formatBox(
-          '❌ Format Tidak Valid',
-          '📋 **Format yang benar:**\n\n' +
-          '🌍 `resetlimit all` - Reset semua pengguna\n' +
-          '👤 `resetlimit @user` - Reset dengan mention\n' +
-          '📱 `resetlimit 628123456789` - Reset dengan nomor\n\n' +
-          '⚠️ **Contoh Nomor:**\n' +
-          '• 628123456789 (dengan kode negara)\n' +
-          '• 08123456789 (akan otomatis dikonversi)\n\n' +
-          '💡 **Tips:**\n' +
-          '• Mention lebih akurat daripada nomor\n' +
-          '• Pastikan pengguna sudah terdaftar\n' +
-          '• Gunakan "all" dengan hati-hati'
-        ),
+        `*❌ Format Tidak Valid*\n\n` +
+          `📋 *Format yang benar:*\n\n` +
+          `🌍 \`resetlimit all\` - Reset semua pengguna\n` +
+          `👤 \`resetlimit @user\` - Reset dengan mention\n` +
+          `📱 \`resetlimit 628123456789\` - Reset dengan nomor\n\n` +
+          `⚠️ *Contoh Nomor:*\n` +
+          `• 628123456789 (dengan kode negara)\n` +
+          `• 08123456789 (akan otomatis dikonversi)\n\n` +
+          `💡 *Tips:*\n` +
+          `• Mention lebih akurat daripada nomor\n` +
+          `• Pastikan pengguna sudah terdaftar\n` +
+          `• Gunakan "all" dengan hati-hati`,
         message.id
-      );    } catch (error) {
+      );
+
+    } catch (error) {
       log.error('Reset limit command error', error);
       
       // Send detailed error information
       await client.reply(
         message.from,
-        formatMessage.formatBox(
-          '❌ Terjadi Kesalahan',
-          '🚨 **Error saat reset limit!**\n\n' +          `⚠️ **Detail Error:**\n` +
+        `*❌ Terjadi Kesalahan*\n\n` +
+          `🚨 *Error saat reset limit!*\n\n` +
+          `⚠️ *Detail Error:*\n` +
           `• ${(error as Error).message || 'Unknown error'}\n\n` +
-          `🔄 **Solusi:**\n` +
+          `🔄 *Solusi:*\n` +
           `• Coba lagi dalam beberapa saat\n` +
           `• Pastikan format command benar\n` +
           `• Laporkan ke owner jika terus error\n\n` +
-          `⏰ **Waktu error:** ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
-        ),
+          `⏰ *Waktu error:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
         message.id
       );
     }

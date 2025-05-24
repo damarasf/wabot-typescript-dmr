@@ -2,7 +2,7 @@ import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import { getCommandsByCategory, getCommand } from '../handlers/commandHandler';
-import { formatHelpCommand, formatBox } from '../utils/formatter';
+import { formatHelpCommand } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
@@ -29,24 +29,12 @@ const help: Command = {
    * @param user - User database object for permission filtering
    */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      logger.command('Processing help command', { 
-        senderId: message.sender.id,
-        chatId: message.chatId 
-      });
       
       // Get user information for permission filtering
       const userLevel = user ? user.level : UserLevel.UNREGISTERED;
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isRegistered = user !== undefined;
       const userLanguage = user?.language || Language.INDONESIAN;
-      
-      logger.user('User level determined', { 
-        userLevel, 
-        isOwner, 
-        isRegistered,
-        language: userLanguage,
-        phoneNumber: message.sender.id 
-      });
       
       // Handle specific command help request
       if (args.length > 0) {
@@ -56,13 +44,14 @@ const help: Command = {
       
       // Generate general help menu
       await generateGeneralHelpMenu(message, client, userLevel, isOwner, isRegistered, userLanguage);
-        } catch (error) {
+    } catch (error) {
       logger.error('Error in help command:', { 
         error: error instanceof Error ? error.message : error,
         chatId: message.chatId,
         sender: message.sender?.id || 'unknown'
       });
-        try {
+      
+      try {
         const userLang = user?.language || Language.INDONESIAN;
         await client.reply(
           message.chatId,
@@ -203,15 +192,10 @@ async function generateGeneralHelpMenu(
     helpMessage += `${getText('help.tips', userLanguage)}:\n`;
     helpMessage += `${getText('help.tip_detail', userLanguage)}\n\n`;
     helpMessage += `${getText('help.footer', userLanguage)}`;
-      logger.success('Generated help menu', { 
-      totalCommands, 
-      userLevel, 
-      sender: message.sender.id 
-    });
     
     // Send help message
     await client.reply(message.chatId, helpMessage, message.id);
-      } catch (error) {
+  } catch (error) {
     logger.error('Error generating general help menu:', { 
       error: error instanceof Error ? error.message : error,
       sender: message.sender.id 

@@ -2,7 +2,6 @@ import { Client, Message, ContactId, MessageId } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import { UserLevel } from '../database/models/User';
-import formatMessage from '../utils/formatter';
 import config from '../utils/config';
 import { log } from '../utils/logger';
 
@@ -39,27 +38,24 @@ export const broadcastCommand: Command = {
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       // Show help if no arguments
-      if (args.length === 0) {
-        await client.reply(
+      if (args.length === 0) {        await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '📢 Broadcast - Panduan',
-            '🎯 **Cara Penggunaan:**\n\n' +
-            '📝 `broadcast <pesan>` - Kirim ke semua\n' +
-            '🏷️ `broadcast <pesan> <level>` - Kirim ke level tertentu\n\n' +
-            '🎭 **Level Filter:**\n' +
-            '• `free` - Hanya pengguna gratis\n' +
-            '• `premium` - Hanya pengguna premium\n' +
-            '• `admin` - Hanya admin\n' +
-            '• `all` - Semua level (default)\n\n' +
-            '⚠️ **Perhatian:**\n' +
-            '• Pesan akan dikirim dengan jeda 2 detik\n' +
-            '• Proses mungkin memakan waktu lama\n' +
-            '• Gunakan dengan bijak\n\n' +
-            '💡 **Contoh:**\n' +
-            '`broadcast Halo semua pengguna!`\n' +
-            '`broadcast Update premium tersedia premium`'
-          ),
+          `*📢 Broadcast - Panduan*\n\n` +
+            `🎯 *Cara Penggunaan:*\n\n` +
+            `📝 \`broadcast <pesan>\` - Kirim ke semua\n` +
+            `🏷️ \`broadcast <pesan> <level>\` - Kirim ke level tertentu\n\n` +
+            `🎭 *Level Filter:*\n` +
+            `• \`free\` - Hanya pengguna gratis\n` +
+            `• \`premium\` - Hanya pengguna premium\n` +
+            `• \`admin\` - Hanya admin\n` +
+            `• \`all\` - Semua level (default)\n\n` +
+            `⚠️ *Perhatian:*\n` +
+            `• Pesan akan dikirim dengan jeda 2 detik\n` +
+            `• Proses mungkin memakan waktu lama\n` +
+            `• Gunakan dengan bijak\n\n` +
+            `💡 *Contoh:*\n` +
+            `\`broadcast Halo semua pengguna!\`\n` +
+            `\`broadcast Update premium tersedia premium\``,
           message.id
         );
         return;
@@ -72,19 +68,16 @@ export const broadcastCommand: Command = {
         ? args.slice(0, -1) 
         : args;
       
-      if (messageArgs.length === 0) {
-        await client.reply(
+      if (messageArgs.length === 0) {        await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '❌ Pesan Kosong',
-            '📝 **Harap berikan pesan untuk di-broadcast!**\n\n' +
-            '💡 **Contoh yang benar:**\n' +
-            '• `broadcast Halo semua!`\n' +
-            '• `broadcast Update fitur baru premium`\n\n' +
-            '❌ **Tidak valid:**\n' +
-            '• `broadcast premium` (tanpa pesan)\n' +
-            '• `broadcast ` (kosong)'
-          ),
+          `*❌ Pesan Kosong*\n\n` +
+            `📝 *Harap berikan pesan untuk di-broadcast!*\n\n` +
+            `💡 *Contoh yang benar:*\n` +
+            `• \`broadcast Halo semua!\`\n` +
+            `• \`broadcast Update fitur baru premium\`\n\n` +
+            `❌ *Tidak valid:*\n` +
+            `• \`broadcast premium\` (tanpa pesan)\n` +
+            `• \`broadcast \` (kosong)`,
           message.id
         );
         return;
@@ -116,19 +109,16 @@ export const broadcastCommand: Command = {
       });
 
       if (users.length === 0) {
-        const levelText = levelFilter === 'all' ? 'terdaftar' : levelFilter;
-        await client.reply(
+        const levelText = levelFilter === 'all' ? 'terdaftar' : levelFilter;        await client.reply(
           message.from,
-          formatMessage.formatBox(
-            '⚠️ Tidak Ada Target',
-            `🔍 **Filter:** ${levelText}\n\n` +
-            `📊 **Hasil:** Tidak ada pengguna ditemukan\n\n` +
-            `💡 **Kemungkinan Penyebab:**\n` +
+          `*⚠️ Tidak Ada Target*\n\n` +
+            `🔍 *Filter:* ${levelText}\n\n` +
+            `📊 *Hasil:* Tidak ada pengguna ditemukan\n\n` +
+            `💡 *Kemungkinan Penyebab:*\n` +
             `• Belum ada pengguna dengan level ${levelText}\n` +
             `• Database kosong\n` +
             `• Filter terlalu spesifik\n\n` +
-            `🔄 **Coba lagi dengan filter 'all'**`
-          ),
+            `🔄 *Coba lagi dengan filter 'all'*`,
           message.id
         );
         return;
@@ -137,25 +127,21 @@ export const broadcastCommand: Command = {
       // Show preview and confirmation
       const previewMessage = broadcastMessage.length > 100 
         ? broadcastMessage.substring(0, 100) + '...'
-        : broadcastMessage;
-
-      await client.reply(
+        : broadcastMessage;      await client.reply(
         message.from,
-        formatMessage.formatBox(
-          '📢 Konfirmasi Broadcast',
-          `📝 **Preview Pesan:**\n` +
+        `*📢 Konfirmasi Broadcast*\n\n` +
+          `📝 *Preview Pesan:*\n` +
           `"${previewMessage}"\n\n` +
-          `🎯 **Target:**\n` +
+          `🎯 *Target:*\n` +
           `• Filter: ${levelFilter}\n` +
           `• Pengguna: ${users.length}\n` +
           `• Estimasi waktu: ${Math.ceil(users.length * 2 / 60)} menit\n\n` +
-          `⚡ **Detail Proses:**\n` +
+          `⚡ *Detail Proses:*\n` +
           `• Jeda antar pesan: 2 detik\n` +
           `• Total karakter: ${broadcastMessage.length}\n` +
           `• Rate limit: Safe mode\n\n` +
-          `🚀 **Broadcast akan dimulai dalam 5 detik...**\n` +
-          `💬 Balas "STOP" untuk membatalkan`
-        ),
+          `🚀 *Broadcast akan dimulai dalam 5 detik...*\n` +
+          `💬 Balas "STOP" untuk membatalkan`,
         message.id
       );
 
@@ -167,38 +153,27 @@ export const broadcastCommand: Command = {
       let failedCount = 0;
       let blockedCount = 0;
       const failedUsers: string[] = [];
-      const blockedUsers: string[] = [];
-
-      // Send initial progress message
+      const blockedUsers: string[] = [];      // Send initial progress message
       const progressMessage = await client.reply(
         message.from,
-        formatMessage.formatBox(
-          '📢 Broadcast Dimulai',
-          `⏳ **Memulai broadcast...**\n\n` +
-          `📊 **Progress:** 0/${users.length}\n` +
+        `*📢 Broadcast Dimulai*\n\n` +
+          `⏳ *Memulai broadcast...*\n\n` +
+          `📊 *Progress:* 0/${users.length}\n` +
           `✅ Berhasil: 0\n` +
           `❌ Gagal: 0\n` +
           `🚫 Terblokir: 0\n\n` +
-          `⏰ Dimulai: ${currentTime}`
-        ),
+          `⏰ Dimulai: ${currentTime}`,
         message.id
       );
 
       // Broadcast to all users with progress updates
       for (let i = 0; i < users.length; i++) {
         const user = users[i];
-        
-        try {
-          // Prepare final message with header and footer
-          const finalMessage = formatMessage.formatBox(
-            '📢 BROADCAST MESSAGE',
-            `${broadcastMessage}\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━\n` +
-            `🤖 _Pesan dari ${config.botName}_\n` +
-            `⏰ _${currentTime}_`
-          );
+          try {
+          // Prepare final message with simple format
+          const finalMessage = `*📢 BROADCAST MESSAGE*\n\n${broadcastMessage}\n\n🤖 _Pesan dari ${config.botName}_\n⏰ _${currentTime}_`;
                     
-          // Send message          
+          // Send message
           await client.sendText(`${user.phoneNumber}@c.us` as ContactId, finalMessage);
           successCount++;
           
@@ -223,16 +198,13 @@ export const broadcastCommand: Command = {
           try {
             const progressPercent = Math.round(((i + 1) / users.length) * 100);
             const progressBar = generateProgressBar(progressPercent);            await client.reply(
-              message.from,
-              formatMessage.formatBox(
-                '📢 Progress Broadcast',
+              message.from,              `*📢 Progress Broadcast*\n\n` +
                 `${progressBar} ${progressPercent}%\n\n` +
-                `📊 **Progress:** ${i + 1}/${users.length}\n` +
+                `📊 *Progress:* ${i + 1}/${users.length}\n` +
                 `✅ Berhasil: ${successCount}\n` +
                 `❌ Gagal: ${failedCount}\n` +
                 `🚫 Terblokir: ${blockedCount}\n\n` +
-                `⏰ Berlangsung: ${Math.round((Date.now() - startTime) / 1000)}s`
-              ),
+                `⏰ Berlangsung: ${Math.round((Date.now() - startTime) / 1000)}s`,
               message.id            );
           } catch (updateError) {
             // Remove debug logging for performance - progress update errors are not critical
@@ -246,57 +218,51 @@ export const broadcastCommand: Command = {
       }
 
       const totalTime = Math.round((Date.now() - startTime) / 1000);
-      const successRate = Math.round((successCount / users.length) * 100);
-
-      // Send final summary
-      let summaryMessage = `🎉 **Broadcast Selesai!**\n\n`;
-      summaryMessage += `📊 **Statistik Final:**\n`;
+      const successRate = Math.round((successCount / users.length) * 100);      // Send final summary
+      let summaryMessage = `🎉 *Broadcast Selesai!*\n\n`;
+      summaryMessage += `📊 *Statistik Final:*\n`;
       summaryMessage += `• Total target: ${users.length}\n`;
       summaryMessage += `• Berhasil: ${successCount} (${successRate}%)\n`;
       summaryMessage += `• Gagal: ${failedCount}\n`;
       summaryMessage += `• Terblokir: ${blockedCount}\n\n`;
-      summaryMessage += `⏱️ **Waktu Proses:**\n`;
+      summaryMessage += `⏱️ *Waktu Proses:*\n`;
       summaryMessage += `• Total: ${totalTime}s (${Math.round(totalTime / 60)}m)\n`;
       summaryMessage += `• Rate: ${Math.round(users.length / totalTime * 60)} msg/min\n\n`;
-      summaryMessage += `🎯 **Filter:** ${levelFilter}\n`;
-      summaryMessage += `⏰ **Selesai:** ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
+      summaryMessage += `🎯 *Filter:* ${levelFilter}\n`;
+      summaryMessage += `⏰ *Selesai:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
 
       // Add failed users info if any
       if (failedUsers.length > 0 && failedUsers.length <= 5) {
-        summaryMessage += `\n\n❌ **Gagal:** ${failedUsers.join(', ')}`;
+        summaryMessage += `\n\n❌ *Gagal:* ${failedUsers.join(', ')}`;
       } else if (failedUsers.length > 5) {
-        summaryMessage += `\n\n❌ **Gagal:** ${failedUsers.slice(0, 3).join(', ')} +${failedUsers.length - 3} lainnya`;
+        summaryMessage += `\n\n❌ *Gagal:* ${failedUsers.slice(0, 3).join(', ')} +${failedUsers.length - 3} lainnya`;
       }
 
       if (blockedUsers.length > 0 && blockedUsers.length <= 5) {
-        summaryMessage += `\n\n🚫 **Terblokir:** ${blockedUsers.join(', ')}`;
+        summaryMessage += `\n\n🚫 *Terblokir:* ${blockedUsers.join(', ')}`;
       } else if (blockedUsers.length > 5) {
-        summaryMessage += `\n\n🚫 **Terblokir:** ${blockedUsers.slice(0, 3).join(', ')} +${blockedUsers.length - 3} lainnya`;
-      }
-
-      await client.reply(
+        summaryMessage += `\n\n🚫 *Terblokir:* ${blockedUsers.slice(0, 3).join(', ')} +${blockedUsers.length - 3} lainnya`;
+      }await client.reply(
         message.from,
-        formatMessage.formatBox('📊 Hasil Broadcast', summaryMessage),
+        `*📊 Hasil Broadcast*\n\n${summaryMessage}`,
         message.id      );
 
       log.success(`Broadcast completed: ${successCount}/${users.length} success, ${failedCount} failed, ${blockedCount} blocked in ${totalTime}s`);
 
     } catch (error) {
       log.error('Broadcast command error', error);
-      
-      await client.reply(
+        await client.reply(
         message.from,
-        formatMessage.formatBox(
-          '❌ Broadcast Gagal',
-          `🚨 **ERROR SAAT BROADCAST!**\n\n` +          `⚠️ **Detail Error:**\n` +
+        `*❌ Broadcast Gagal*\n\n` +
+          `🚨 *ERROR SAAT BROADCAST!*\n\n` +
+          `⚠️ *Detail Error:*\n` +
           `• ${(error as Error).message || 'Unknown error'}\n\n` +
-          `🔄 **Solusi:**\n` +
+          `🔄 *Solusi:*\n` +
           `• Periksa koneksi internet\n` +
           `• Coba dengan pesan lebih pendek\n` +
           `• Coba lagi dalam beberapa menit\n` +
           `• Laporkan ke developer jika terus error\n\n` +
-          `⏰ **Waktu error:** ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
-        ),
+          `⏰ *Waktu error:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
         message.id
       );
     }
