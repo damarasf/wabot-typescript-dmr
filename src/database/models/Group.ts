@@ -77,11 +77,10 @@ Group.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-    },
-  },
+    },  },
   {
     sequelize,
-    tableName: 'Groups',
+    tableName: 'groups',
     modelName: 'Group',
   }
 );

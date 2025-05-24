@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('Reminders', {
+    await queryInterface.createTable('reminders', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -50,13 +50,13 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('Reminders', ['userId']);
-    await queryInterface.addIndex('Reminders', ['scheduledAt']);
-    await queryInterface.addIndex('Reminders', ['isCompleted']);
-    await queryInterface.addIndex('Reminders', ['scheduledAt', 'isCompleted']);
+    await queryInterface.addIndex('reminders', ['userId']);
+    await queryInterface.addIndex('reminders', ['scheduledAt']);
+    await queryInterface.addIndex('reminders', ['isCompleted']);
+    await queryInterface.addIndex('reminders', ['scheduledAt', 'isCompleted']);
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('Reminders');
+    await queryInterface.dropTable('reminders');
   }
 };

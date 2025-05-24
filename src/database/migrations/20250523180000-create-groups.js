@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('Groups', {
+    await queryInterface.createTable('groups', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -38,11 +38,11 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('Groups', ['groupId']);
-    await queryInterface.addIndex('Groups', ['isActive']);
+    await queryInterface.addIndex('groups', ['groupId']);
+    await queryInterface.addIndex('groups', ['isActive']);
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('Groups');
+    await queryInterface.dropTable('groups');
   }
 };

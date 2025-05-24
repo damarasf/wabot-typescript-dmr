@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('users', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -44,11 +44,11 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('Users', ['phoneNumber']);
-    await queryInterface.addIndex('Users', ['level']);
+    await queryInterface.addIndex('users', ['phoneNumber']);
+    await queryInterface.addIndex('users', ['level']);
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('users');
   }
 };

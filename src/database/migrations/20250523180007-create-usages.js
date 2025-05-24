@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('Usages', {
+    await queryInterface.createTable('usages', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users',
+          model: 'users',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -53,16 +53,16 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('Usages', ['userId']);
-    await queryInterface.addIndex('Usages', ['feature']);
-    await queryInterface.addIndex('Usages', ['date']);
-    await queryInterface.addIndex('Usages', ['userId', 'feature', 'date'], {
+    await queryInterface.addIndex('usages', ['userId']);
+    await queryInterface.addIndex('usages', ['feature']);
+    await queryInterface.addIndex('usages', ['date']);
+    await queryInterface.addIndex('usages', ['userId', 'feature', 'date'], {
       unique: true,
       name: 'unique_user_feature_date'
     });
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('Usages');
+    await queryInterface.dropTable('usages');
   }
 };

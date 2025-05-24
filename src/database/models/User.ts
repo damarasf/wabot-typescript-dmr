@@ -109,11 +109,10 @@ User.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
-    },
-  },
+    },  },
   {
     sequelize,
-    tableName: 'Users',
+    tableName: 'users',
     modelName: 'User',
   }
 );
