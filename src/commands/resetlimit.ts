@@ -2,6 +2,7 @@ import { Client, Message, ContactId } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
 import { User, Usage } from '../database/models';
 import formatMessage from '../utils/formatter';
+import { log } from '../utils/logger';
 
 /**
  * Reset Limit Command
@@ -56,10 +57,9 @@ export const resetlimitCommand: Command = {
 
       const startTime = Date.now();
       const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-      
-      // Handle "all" reset with confirmation
+        // Handle "all" reset with confirmation
       if (args[0].toLowerCase() === 'all') {
-        console.log(`🔄 [RESET-ALL] Initiated by admin: ${message.sender.id}`);
+        log.info(`Reset all limits initiated by admin: ${message.sender.id}`);
         
         // Get total count before reset
         const totalUsages = await Usage.count();
@@ -130,14 +130,13 @@ export const resetlimitCommand: Command = {
             `👑 **Admin:** @${message.sender.id.replace('@c.us', '')}\n\n` +
             `✨ Semua pengguna kini dapat menggunakan fitur kembali!`
           ),
-          message.id
-        );
+          message.id        );
 
-        console.log(`✅ [RESET-ALL] Completed: ${resetCount} usages reset by ${message.sender.id} in ${processingTime}s`);
+        log.success(`Reset all completed: ${resetCount} usages reset by ${message.sender.id} in ${processingTime}s`);
         return;
       }      // Handle mentions (multiple users)
       if (message.mentionedJidList && message.mentionedJidList.length > 0) {
-        console.log(`🔄 [RESET-MENTIONS] Processing ${message.mentionedJidList.length} mentions by admin: ${message.sender.id}`);
+        log.info(`Reset mentions processing ${message.mentionedJidList.length} mentions by admin: ${message.sender.id}`);
         
         let resetCount = 0;
         let notFoundCount = 0;
@@ -178,21 +177,20 @@ export const resetlimitCommand: Command = {
               });
 
               // Try to get contact info
-              let displayName = phoneNumber;
-              try {
+              let displayName = phoneNumber;              try {
                 const contact = await client.getContact(mentionedJid as ContactId);
-                displayName = contact.name || contact.pushname || phoneNumber;              } catch (contactError) {
-                console.log(`⚠️ Could not fetch contact info for ${phoneNumber}:`, (contactError as Error).message || 'Unknown error');
+                displayName = contact.name || contact.pushname || phoneNumber;
+              } catch (contactError) {
+                log.debug(`Could not fetch contact info for ${phoneNumber}: ${(contactError as Error).message || 'Unknown error'}`);
               }
 
               resetResults.push(`✅ ${displayName} (${usageCount} data)`);
               resetCount++;
             } else {
               notFoundUsers.push(`❌ ${phoneNumber} (tidak terdaftar)`);
-              notFoundCount++;
-            }
+              notFoundCount++;            }
           } catch (error) {
-            console.error(`❌ Error processing mention ${mentionedJid}:`, error);
+            log.error(`Error processing mention ${mentionedJid}`, error);
             notFoundUsers.push(`❌ ${mentionedJid.replace('@c.us', '')} (error)`);
             notFoundCount++;
           }
@@ -224,16 +222,14 @@ export const resetlimitCommand: Command = {
           message.from,
           formatMessage.formatBox('📊 Hasil Reset Mention', resultMessage),
           message.id
-        );
-
-        console.log(`✅ [RESET-MENTIONS] Completed: ${resetCount}/${message.mentionedJidList.length} users reset by ${message.sender.id}`);
+        );        log.success(`Reset mentions completed: ${resetCount}/${message.mentionedJidList.length} users reset by ${message.sender.id}`);
         return;
       }
 
       // Handle phone number reset
       const phoneArg = args[0].replace(/[^0-9]/g, '');
       if (phoneArg.length >= 10) {
-        console.log(`🔄 [RESET-PHONE] Processing phone ${phoneArg} by admin: ${message.sender.id}`);
+        log.info(`Reset phone processing ${phoneArg} by admin: ${message.sender.id}`);
         
         // Normalize phone number
         let normalizedPhone = phoneArg;
@@ -259,11 +255,11 @@ export const resetlimitCommand: Command = {
           });
 
           // Try to get contact info
-          let displayName = normalizedPhone;
-          try {
+          let displayName = normalizedPhone;          try {
             const contact = await client.getContact(`${normalizedPhone}@c.us` as ContactId);
-            displayName = contact.name || contact.pushname || normalizedPhone;          } catch (contactError) {
-            console.log(`⚠️ Could not fetch contact info for ${normalizedPhone}:`, (contactError as Error).message || 'Unknown error');
+            displayName = contact.name || contact.pushname || normalizedPhone;
+          } catch (contactError) {
+            log.debug(`Could not fetch contact info for ${normalizedPhone}: ${(contactError as Error).message || 'Unknown error'}`);
           }
 
           const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -282,10 +278,9 @@ export const resetlimitCommand: Command = {
               `⏰ **Waktu:** ${currentTime}\n\n` +
               `✨ Pengguna dapat menggunakan fitur kembali!`
             ),
-            message.id
-          );
+            message.id          );
 
-          console.log(`✅ [RESET-PHONE] Completed: ${normalizedPhone} (${usageCount} usages) reset by ${message.sender.id}`);
+          log.success(`Reset phone completed: ${normalizedPhone} (${usageCount} usages) reset by ${message.sender.id}`);
         } else {
           await client.reply(
             message.from,
@@ -301,10 +296,9 @@ export const resetlimitCommand: Command = {
               `• Pengguna harus register terlebih dahulu\n` +
               `• Gunakan format: resetlimit @user untuk mention`
             ),
-            message.id
-          );
+            message.id          );
 
-          console.log(`❌ [RESET-PHONE] User not found: ${normalizedPhone} requested by ${message.sender.id}`);
+          log.warn(`Reset phone - user not found: ${normalizedPhone} requested by ${message.sender.id}`);
         }
         return;
       }
@@ -327,10 +321,8 @@ export const resetlimitCommand: Command = {
           '• Gunakan "all" dengan hati-hati'
         ),
         message.id
-      );
-
-    } catch (error) {
-      console.error('❌ [RESET-LIMIT] Command error:', error);
+      );    } catch (error) {
+      log.error('Reset limit command error', error);
       
       // Send detailed error information
       await client.reply(

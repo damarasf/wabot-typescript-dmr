@@ -4,6 +4,7 @@ import { getCommand } from './commandHandler';
 import { Group } from '../database/models';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
+import { log } from '../utils/logger';
 
 // Handle incoming message
 export async function handleMessage(client: Client, message: Message): Promise<void> {
@@ -18,29 +19,27 @@ export async function handleMessage(client: Client, message: Message): Promise<v
     if (!parsedCommand) return;
     
     const { command: commandInfo, args, user } = parsedCommand;
-    
-    // Find the command in the handler
+      // Find the command in the handler
     const command = getCommand(commandInfo.name);
     if (!command) {
-      console.warn(`Command not found in handler: ${commandInfo.name}`);
+      log.warn(`Command not found in handler: ${commandInfo.name}`);
       return;
     }
     
-    console.log(`Executing command: ${command.name} by ${message.sender.id}`);
+    log.command(`Executing command: ${command.name} by ${message.sender.id}`);
     
     // Execute the command
     await command.execute(message, args, client, user);
   } catch (error) {
-    console.error('Error handling message:', error);
-    
-    try {
+    log.error('Error handling message', error);
+      try {
       await client.reply(
         message.chatId, 
         '❌ Terjadi kesalahan saat memproses perintah. Silakan coba lagi nanti.', 
         message.id
       );
     } catch (replyError) {
-      console.error('Error sending error reply:', replyError);
+      log.error('Error sending error reply', replyError);
     }
   }
 }
@@ -55,23 +54,22 @@ export async function handleGroupJoin(client: Client, groupId: string, groupName
       await Group.create({
         groupId,
         joinedAt: new Date(),
-        isActive: true,
-      });
+        isActive: true,      });
       
-      console.log(`Joined new group: ${groupName} (${groupId})`);
-    } else if (!existingGroup.isActive) {      // Update group if it was previously inactive (removed name update)
+      log.info(`Joined new group: ${groupName}`, { groupId });
+    } else if (!existingGroup.isActive) {
+      // Update group if it was previously inactive (removed name update)
       existingGroup.isActive = true;
       await existingGroup.save();
       
-      console.log(`Rejoined group: ${groupName} (${groupId})`);
+      log.info(`Rejoined group: ${groupName}`, { groupId });
     }
       // Send welcome message
     await client.sendText(
       groupId as any,
-      `Halo! Saya adalah *${config.botName}*\n\nTerima kasih telah mengundang saya ke grup ini. Untuk melihat daftar perintah, ketik *!help*`
-    );
+      `Halo! Saya adalah *${config.botName}*\n\nTerima kasih telah mengundang saya ke grup ini. Untuk melihat daftar perintah, ketik *!help*`    );
   } catch (error) {
-    console.error('Error handling group join:', error);
+    log.error('Error handling group join', error);
   }
 }
 
@@ -84,25 +82,24 @@ export async function handleGroupLeave(client: Client, groupId: string): Promise
       group.isActive = false;
       await group.save();
       
-      console.log(`Left group: (${groupId})`);
+      log.info(`Left group`, { groupId });
     }
   } catch (error) {
-    console.error('Error handling group leave:', error);
+    log.error('Error handling group leave', error);
   }
 }
 
 // Handle call event
 export async function handleCall(client: Client, callerId: string): Promise<void> {
   if (!config.antiCall) return;
-    try {
-    await client.sendText(
+    try {    await client.sendText(
       callerId as any, 
       'Maaf, bot tidak dapat menerima panggilan telepon atau video call. Silakan kirim pesan teks saja.'
     );
     
-    console.log(`Rejected call from: ${callerId}`);
+    log.security(`Rejected call from: ${callerId}`);
   } catch (error) {
-    console.error('Error handling call:', error);
+    log.error('Error handling call', error);
   }
 }
 

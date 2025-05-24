@@ -4,6 +4,7 @@ import { User } from '../database/models';
 import { UserLevel } from '../database/models/User';
 import formatMessage from '../utils/formatter';
 import config from '../utils/config';
+import { log } from '../utils/logger';
 
 /**
  * Broadcast Command
@@ -87,13 +88,11 @@ export const broadcastCommand: Command = {
           message.id
         );
         return;
-      }
-
-      const broadcastMessage = messageArgs.join(' ');
+      }      const broadcastMessage = messageArgs.join(' ');
       const startTime = Date.now();
       const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
       
-      console.log(`📢 [BROADCAST] Started by owner: ${message.sender.id}, filter: ${levelFilter}, message length: ${broadcastMessage.length}`);
+      log.info(`Broadcast started by owner: ${message.sender.id}, filter: ${levelFilter}, message length: ${broadcastMessage.length}`);
 
       // Build user query based on level filter
       const whereClause: any = {};
@@ -199,24 +198,23 @@ export const broadcastCommand: Command = {
             `⏰ _${currentTime}_`
           );
           
-          // Send message
-          await client.sendText(`${user.phoneNumber}@c.us` as ContactId, finalMessage);
+          // Send message          await client.sendText(`${user.phoneNumber}@c.us` as ContactId, finalMessage);
           successCount++;
           
-          console.log(`📤 [BROADCAST] Sent to ${user.phoneNumber} (${successCount}/${users.length})`);
-            } catch (error) {
+          log.debug(`Broadcast sent to ${user.phoneNumber} (${successCount}/${users.length})`);
+        } catch (error) {
           const errorMessage = (error as Error).message?.toLowerCase() || '';
           
           if (errorMessage.includes('blocked') || errorMessage.includes('not found')) {
             blockedUsers.push(user.phoneNumber);
             blockedCount++;
-            console.log(`🚫 [BROADCAST] Blocked by ${user.phoneNumber}:`, (error as Error).message || 'Unknown error');
+            log.warn(`Broadcast blocked by ${user.phoneNumber}: ${(error as Error).message || 'Unknown error'}`);
           } else {
             failedUsers.push(user.phoneNumber);
             failedCount++;
-            console.error(`❌ [BROADCAST] Failed to send to ${user.phoneNumber}:`, (error as Error).message || 'Unknown error');
+            log.error(`Failed to send broadcast to ${user.phoneNumber}: ${(error as Error).message || 'Unknown error'}`);
           }
-        }        // Update progress every 10 messages or at the end
+        }// Update progress every 10 messages or at the end
         if ((i + 1) % 10 === 0 || i === users.length - 1) {
           try {
             const progressPercent = Math.round(((i + 1) / users.length) * 100);
@@ -231,9 +229,9 @@ export const broadcastCommand: Command = {
                 `🚫 Terblokir: ${blockedCount}\n\n` +
                 `⏰ Berlangsung: ${Math.round((Date.now() - startTime) / 1000)}s`
               ),
-              message.id
-            );} catch (updateError) {
-            console.log(`⚠️ [BROADCAST] Progress update failed:`, (updateError as Error).message || 'Unknown error');
+              message.id            );
+          } catch (updateError) {
+            log.debug(`Broadcast progress update failed: ${(updateError as Error).message || 'Unknown error'}`);
           }
         }
 
@@ -275,13 +273,12 @@ export const broadcastCommand: Command = {
       await client.reply(
         message.from,
         formatMessage.formatBox('📊 Hasil Broadcast', summaryMessage),
-        message.id
-      );
+        message.id      );
 
-      console.log(`✅ [BROADCAST] Completed: ${successCount}/${users.length} success, ${failedCount} failed, ${blockedCount} blocked in ${totalTime}s`);
+      log.success(`Broadcast completed: ${successCount}/${users.length} success, ${failedCount} failed, ${blockedCount} blocked in ${totalTime}s`);
 
     } catch (error) {
-      console.error('❌ [BROADCAST] Command error:', error);
+      log.error('Broadcast command error', error);
       
       await client.reply(
         message.from,

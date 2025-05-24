@@ -1,6 +1,7 @@
 import { Model, DataTypes, Optional } from 'sequelize';
 import sequelize from '../config/database';
 import { Client, GroupChatId } from '@open-wa/wa-automate';
+import logger from '../../utils/logger';
 
 // Interface for Group attributes
 interface GroupAttributes {
@@ -29,9 +30,11 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
     
     try {
       const groupInfo = await client.getGroupInfo(this.groupId as GroupChatId);
-      return groupInfo?.title || this.groupId;
-    } catch (error) {
-      console.error('Error getting group display name:', error);
+      return groupInfo?.title || this.groupId;    } catch (error) {
+      logger.error('Error getting group display name:', { 
+        error: error instanceof Error ? error.message : error,
+        groupId: this.groupId 
+      });
       return this.groupId;
     }
   }
@@ -42,9 +45,11 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
     
     try {
       const groupInfo = await client.getGroupInfo(this.groupId as GroupChatId);
-      return groupInfo?.participants?.length || 0;
-    } catch (error) {
-      console.error('Error getting group member count:', error);
+      return groupInfo?.participants?.length || 0;    } catch (error) {
+      logger.error('Error getting group member count:', { 
+        error: error instanceof Error ? error.message : error,
+        groupId: this.groupId 
+      });
       return 0;
     }
   }

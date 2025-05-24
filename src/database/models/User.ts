@@ -1,6 +1,7 @@
 import { Model, DataTypes, Optional } from 'sequelize';
 import sequelize from '../config/database';
 import { Client, ContactId } from '@open-wa/wa-automate';
+import logger from '../../utils/logger';
 
 // Define user levels
 export enum UserLevel {
@@ -8,7 +9,7 @@ export enum UserLevel {
   FREE = 1,
   PREMIUM = 2,
   ADMIN = 3
-  // Owner tidak disimpan di database, dicek dari config
+  // Owner is not stored in database, checked from config
 }
 
 // Interface for User attributes
@@ -41,9 +42,11 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     try {
       const contactId = `${this.phoneNumber}@c.us` as ContactId;
       const contact = await client.getContact(contactId);
-      return contact?.name || contact?.pushname || this.phoneNumber;
-    } catch (error) {
-      console.error('Error getting user display name:', error);
+      return contact?.name || contact?.pushname || this.phoneNumber;    } catch (error) {
+      logger.error('Error getting user display name:', { 
+        error: error instanceof Error ? error.message : error,
+        phoneNumber: this.phoneNumber 
+      });
       return this.phoneNumber;
     }
   }

@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import { getCommandsByCategory, getCommand } from '../handlers/commandHandler';
 import { formatHelpCommand, formatBox } from '../utils/formatter';
 import config from '../utils/config';
+import logger from '../utils/logger';
 
 /**
  * Help Command
@@ -28,14 +29,22 @@ const help: Command = {
    */
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      console.log(`ℹ️ Processing help command from ${message.sender.id}`);
+      logger.command('Processing help command', { 
+        senderId: message.sender.id,
+        chatId: message.chatId 
+      });
       
       // Get user information for permission filtering
       const userLevel = user ? user.level : UserLevel.UNREGISTERED;
       const isOwner = String(message.sender.id) === config.ownerNumber;
       const isRegistered = user !== undefined;
       
-      console.log(`👤 User level: ${userLevel}, Owner: ${isOwner}, Registered: ${isRegistered}`);
+      logger.user('User level determined', { 
+        userLevel, 
+        isOwner, 
+        isRegistered,
+        phoneNumber: message.sender.id 
+      });
       
       // Handle specific command help request
       if (args.length > 0) {
@@ -45,9 +54,12 @@ const help: Command = {
       
       // Generate general help menu
       await generateGeneralHelpMenu(message, client, userLevel, isOwner, isRegistered);
-      
-    } catch (error) {
-      console.error('❌ Error in help command:', error);
+        } catch (error) {
+      logger.error('Error in help command:', { 
+        error: error instanceof Error ? error.message : error,
+        chatId: message.chatId,
+        sender: message.sender?.id || 'unknown'
+      });
       
       try {
         await client.reply(
@@ -57,7 +69,10 @@ const help: Command = {
           message.id
         );
       } catch (replyError) {
-        console.error('❌ Failed to send help error message:', replyError);
+        logger.error('Failed to send help error message:', { 
+          error: replyError instanceof Error ? replyError.message : replyError,
+          chatId: message.chatId 
+        });
       }
     }
   },
@@ -80,9 +95,11 @@ async function handleSpecificCommandHelp(
 ): Promise<void> {
   try {
     const command = getCommand(commandName.toLowerCase());
-    
-    if (!command) {
-      console.log(`❓ Command not found: ${commandName}`);
+      if (!command) {
+      logger.command('Command not found', { 
+        commandName, 
+        sender: message.sender.id 
+      });
       await client.reply(
         message.chatId,
         `❌ Perintah \`${commandName}\` tidak ditemukan.\n\n` +
@@ -94,9 +111,12 @@ async function handleSpecificCommandHelp(
     
     // Check if user has permission to see this command
     const canAccess = checkCommandAccess(command, userLevel, isOwner);
-    
-    if (!canAccess) {
-      console.log(`🚫 Access denied for command ${commandName} to user level ${userLevel}`);
+      if (!canAccess) {
+      logger.security('Access denied for command', { 
+        commandName, 
+        userLevel, 
+        sender: message.sender.id 
+      });
       await client.reply(
         message.chatId,
         `🚫 Anda tidak memiliki izin untuk mengakses perintah \`${commandName}\`.\n\n` +
@@ -105,15 +125,20 @@ async function handleSpecificCommandHelp(
       );
       return;
     }
-    
-    // Generate detailed command help
+      // Generate detailed command help
     const helpText = formatHelpCommand(command);
-    console.log(`✅ Sending detailed help for command: ${commandName}`);
+    logger.success('Sending detailed help for command', { 
+      commandName, 
+      sender: message.sender.id 
+    });
     
     await client.reply(message.chatId, helpText, message.id);
-    
-  } catch (error) {
-    console.error(`❌ Error getting help for command ${commandName}:`, error);
+      } catch (error) {
+    logger.error('Error getting help for command', { 
+      commandName, 
+      error: error instanceof Error ? error.message : error,
+      sender: message.sender.id 
+    });
     throw error;
   }
 }
@@ -183,14 +208,19 @@ async function generateGeneralHelpMenu(
     helpMessage += `• Upgrade ke Premium untuk akses lebih banyak\n`;
     helpMessage += `• Gunakan prefix ${config.prefixes[0]} sebelum perintah\n\n`;
     helpMessage += `_Developed with ❤️ for better automation_`;
-    
-    console.log(`📋 Generated help menu with ${totalCommands} commands for user level ${userLevel}`);
+      logger.success('Generated help menu', { 
+      totalCommands, 
+      userLevel, 
+      sender: message.sender.id 
+    });
     
     // Send help message
     await client.reply(message.chatId, helpMessage, message.id);
-    
-  } catch (error) {
-    console.error('❌ Error generating general help menu:', error);
+      } catch (error) {
+    logger.error('Error generating general help menu:', { 
+      error: error instanceof Error ? error.message : error,
+      sender: message.sender.id 
+    });
     throw error;
   }
 }

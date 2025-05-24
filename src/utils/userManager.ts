@@ -1,18 +1,18 @@
 import { User, UserLevel, Usage, FeatureType } from '../database/models';
 import config from './config';
 import moment from 'moment-timezone';
+import { log } from './logger';
 
 // Get user by phone number
 export async function getUserByPhone(phone: string): Promise<User | null> {
   try {
     // Normalize phone number (remove non-digits)
     const normalizedPhone = phone.replace(/[^\d]/g, '');
-    
-    return await User.findOne({ 
+      return await User.findOne({ 
       where: { phoneNumber: normalizedPhone } 
     });
   } catch (error) {
-    console.error('Error getting user by phone:', error);
+    log.error('Error getting user by phone', error);
     return null;
   }
 }
@@ -27,34 +27,31 @@ export async function createUser(phone: string): Promise<User> {
       phoneNumber: normalizedPhone,
       level: UserLevel.FREE,
       registeredAt: new Date(),
-      lastActivity: new Date(),
-    });
+      lastActivity: new Date(),    });
     
-    console.log(`✅ User created: ${normalizedPhone}`);
+    log.user(`User created: ${normalizedPhone}`);
     return user;
   } catch (error) {
-    console.error('Error creating user:', error);
+    log.error('Error creating user', error);
     throw error;
   }
 }
 
 // Update user's last active time
 export async function updateUserActivity(user: User): Promise<void> {
-  try {
-    user.lastActivity = new Date();
+  try {    user.lastActivity = new Date();
     await user.save();
   } catch (error) {
-    console.error('Error updating user activity:', error);
+    log.error('Error updating user activity', error);
   }
 }
 
 // Check if user exists
-export async function isUserRegistered(phone: string): Promise<boolean> {
-  try {
+export async function isUserRegistered(phone: string): Promise<boolean> {  try {
     const user = await getUserByPhone(phone);
     return user !== null;
   } catch (error) {
-    console.error('Error checking user registration:', error);
+    log.error('Error checking user registration', error);
     return false;
   }
 }
@@ -70,11 +67,10 @@ export async function getOrCreateUsage(userId: number, feature: FeatureType): Pr
         count: 0,
         date: new Date(),
         lastReset: new Date(),
-      },
-    });
+      },    });
     return usage;
   } catch (error) {
-    console.error('Error getting or creating usage:', error);
+    log.error('Error getting or creating usage', error);
     throw error;
   }
 }
@@ -82,14 +78,13 @@ export async function getOrCreateUsage(userId: number, feature: FeatureType): Pr
 // Increment usage count for a feature
 export async function incrementUsage(userId: number, feature: FeatureType): Promise<Usage> {
   try {
-    const usage = await getOrCreateUsage(userId, feature);
-    usage.count += 1;
+    const usage = await getOrCreateUsage(userId, feature);    usage.count += 1;
     await usage.save();
     
-    console.log(`📊 Usage incremented for user ${userId}, feature ${feature}: ${usage.count}`);
+    log.debug(`Usage incremented for user ${userId}, feature ${feature}: ${usage.count}`);
     return usage;
   } catch (error) {
-    console.error('Error incrementing usage:', error);
+    log.error('Error incrementing usage', error);
     throw error;
   }
 }
@@ -131,30 +126,28 @@ export async function checkLimit(user: User, feature: FeatureType): Promise<{ ha
 
 // Reset usage for all users
 export async function resetAllUsage(): Promise<void> {
-  try {
-    const result = await Usage.update(
+  try {    const result = await Usage.update(
       { count: 0, lastReset: new Date() },
       { where: {} }
     );
     
-    console.log(`✅ Reset usage for all users: ${result[0]} records updated`);
+    log.success(`Reset usage for all users: ${result[0]} records updated`);
   } catch (error) {
-    console.error('Error resetting all usage:', error);
+    log.error('Error resetting all usage', error);
     throw error;
   }
 }
 
 // Reset usage for a specific user
 export async function resetUserUsage(userId: number): Promise<void> {
-  try {
-    const result = await Usage.update(
+  try {    const result = await Usage.update(
       { count: 0, lastReset: new Date() },
       { where: { userId } }
     );
     
-    console.log(`✅ Reset usage for user ${userId}: ${result[0]} records updated`);
+    log.success(`Reset usage for user ${userId}: ${result[0]} records updated`);
   } catch (error) {
-    console.error('Error resetting user usage:', error);
+    log.error('Error resetting user usage', error);
     throw error;
   }
 }
@@ -169,21 +162,19 @@ export async function setCustomLimit(userId: number, feature: FeatureType, limit
     const usage = await getOrCreateUsage(userId, feature);
     usage.customLimit = limit;
     await usage.save();
-    
-    console.log(`✅ Custom limit set for user ${userId}, feature ${feature}: ${limit}`);
+      log.success(`Custom limit set for user ${userId}, feature ${feature}: ${limit}`);
     return usage;
   } catch (error) {
-    console.error('Error setting custom limit:', error);
+    log.error('Error setting custom limit', error);
     return null;
   }
 }
 
 // Set user level
 export async function setUserLevel(userId: number, level: UserLevel): Promise<User | null> {
-  try {
-    const user = await User.findByPk(userId);
+  try {    const user = await User.findByPk(userId);
     if (!user) {
-      console.warn(`User with ID ${userId} not found`);
+      log.warn(`User with ID ${userId} not found`);
       return null;
     }
     
@@ -191,10 +182,10 @@ export async function setUserLevel(userId: number, level: UserLevel): Promise<Us
     user.level = level;
     await user.save();
     
-    console.log(`✅ User level updated for ${userId}: ${UserLevel[oldLevel]} → ${UserLevel[level]}`);
+    log.user(`User level updated for ${userId}: ${UserLevel[oldLevel]} → ${UserLevel[level]}`);
     return user;
   } catch (error) {
-    console.error('Error setting user level:', error);
+    log.error('Error setting user level', error);
     return null;
   }
 }

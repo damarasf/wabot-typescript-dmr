@@ -1,6 +1,7 @@
 import { Command } from '../middlewares/commandParser';
 import path from 'path';
 import fs from 'fs';
+import { log } from '../utils/logger';
 
 // Collection of all commands
 const commands: Map<string, Command> = new Map();
@@ -16,20 +17,19 @@ export async function loadCommands(): Promise<void> {
       // Import command dynamically
       const commandModule = await import(path.join(__dirname, '../commands', file));
       const command = commandModule.default;
-      
-      if (command && command.name) {
+        if (command && command.name) {
         // Add command to collection
         commands.set(command.name, command);
-        console.log(`✅ Loaded command: ${command.name}`);
+        log.success(`Loaded command: ${command.name}`);
       } else {
-        console.warn(`⚠️ Invalid command file: ${file}`);
+        log.warn(`Invalid command file: ${file}`);
       }
     } catch (error) {
-      console.error(`❌ Failed to load command from ${file}:`, error);
+      log.error(`Failed to load command from ${file}`, error);
     }
   }
   
-  console.log(`📋 Loaded a total of ${commands.size} commands`);
+  log.info(`Loaded a total of ${commands.size} commands`);
 }
 
 // Get command by name or alias

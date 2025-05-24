@@ -41,6 +41,11 @@ MultiDevice/
 logs/
 *.log
 
+# Documentation files (ignore all .md except README.md and SETUP.md)
+*.md
+!README.md
+!SETUP.md
+
 # Database
 *.db
 *.sqlite

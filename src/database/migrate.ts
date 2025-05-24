@@ -1,33 +1,34 @@
 import sequelize from './config/database';
 import { User, Group, Usage, Reminder } from './models';
+import logger from '../utils/logger';
 
 // Function to sync all models with the database
-async function migrateDatabase(): Promise<void> {
-  try {
-    console.log('🔄 Starting database migration...');
+async function migrateDatabase(): Promise<void> {  try {
+    logger.system('Starting database migration');
     
     // Test connection first
     await sequelize.authenticate();
-    console.log('✅ Database connection verified');
+    logger.database('Database connection verified');
     
     // For development: force sync (drops and recreates tables)
     // For production: use { alter: true } or proper migrations
     const isDevelopment = process.env.NODE_ENV === 'development';
     
     if (isDevelopment) {
-      console.log('⚠️ Development mode: Force syncing database (will drop existing tables)');
+      logger.warn('Development mode: Force syncing database (will drop existing tables)');
       await sequelize.sync({ force: true });
     } else {
-      console.log('🔧 Production mode: Syncing database (preserving data)');
+      logger.info('Production mode: Syncing database (preserving data)');
       await sequelize.sync({ alter: true });
     }
     
-    console.log('✅ Database migration completed successfully.');
-    console.log('📊 Tables created/updated: User, Group, Usage, Reminder');
-  } catch (error) {
-    console.error('❌ Database migration failed:', error);
+    logger.success('Database migration completed successfully');
+    logger.database('Tables created/updated: User, Group, Usage, Reminder');  } catch (error) {
+    logger.error('Database migration failed:', { 
+      error: error instanceof Error ? error.message : error 
+    });
     if (error instanceof Error) {
-      console.error('Error details:', error.message);
+      logger.error('Error details:', { message: error.message, stack: error.stack });
     }
     process.exit(1);
   }

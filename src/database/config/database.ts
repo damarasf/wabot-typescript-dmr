@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import config from '../../utils/config';
+import { log } from '../../utils/logger';
 
 // Create Sequelize instance with PostgreSQL connection
 const sequelize = new Sequelize({
@@ -9,7 +10,7 @@ const sequelize = new Sequelize({
   username: config.dbUser,
   password: config.dbPassword,
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: process.env.NODE_ENV === 'development' ? (msg: string) => log.debug(msg) : false,
   dialectOptions: {
     ssl: process.env.DB_SSL === 'true' ? {
       require: true,
@@ -29,10 +30,10 @@ const sequelize = new Sequelize({
 export const testConnection = async (): Promise<boolean> => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    log.database('Database connection established successfully');
     return true;
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+    log.error('Unable to connect to the database', error);
     return false;
   }
 };
@@ -43,21 +44,19 @@ export const initializeDatabase = async (): Promise<void> => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Failed to connect to database');
-    }
-
-    // Import models to register them
+    }    // Import models to register them
     await import('../models');
     
     // Use proper migrations in production, sync only for development
     if (process.env.NODE_ENV === 'development') {
       // Sync database with alter mode to preserve data
       await sequelize.sync({ alter: true });
-      console.log('✅ Database synchronized successfully (development mode).');
+      log.database('Database synchronized successfully (development mode)');
     } else {
-      console.log('✅ Database ready (production mode - use migrations).');
+      log.database('Database ready (production mode - use migrations)');
     }
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    log.error('Database initialization failed', error);
     throw error;
   }
 };

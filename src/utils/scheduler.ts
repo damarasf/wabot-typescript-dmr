@@ -3,6 +3,7 @@ import { Client } from '@open-wa/wa-automate';
 import { Reminder } from '../database/models';
 import * as userManager from './userManager';
 import moment from 'moment-timezone';
+import { log } from './logger';
 
 // Timezone configuration
 const TIMEZONE = 'Asia/Jakarta';
@@ -14,11 +15,11 @@ export function initScheduler(client: Client): void {
     '0 0 * * *', // Midnight every day (00:00)
     async function() {
       try {
-        console.log('Executing daily reset of usage limits...');
+        log.info('Executing daily reset of usage limits...');
         await userManager.resetAllUsage();
-        console.log('Daily reset of usage limits completed.');
+        log.success('Daily reset of usage limits completed');
       } catch (error) {
-        console.error('Error in daily reset job:', error);
+        log.error('Error in daily reset job', error);
       }
     },
     null,
@@ -33,7 +34,7 @@ export function initScheduler(client: Client): void {
       try {
         await processReminders(client);
       } catch (error) {
-        console.error('Error in reminder job:', error);
+        log.error('Error in reminder job', error);
       }
     },
     null,
@@ -41,7 +42,7 @@ export function initScheduler(client: Client): void {
     TIMEZONE
   );
   
-  console.log('Scheduler initialized.');
+  log.success('Scheduler initialized');
 }
 
 // Process due reminders
@@ -61,11 +62,11 @@ async function processReminders(client: Client): Promise<void> {
         },
       },
     });
+      if (dueReminders.length === 0) return;
     
-    if (dueReminders.length === 0) return;
+    log.info(`Processing ${dueReminders.length} due reminders...`);
     
-    console.log(`Processing ${dueReminders.length} due reminders...`);
-      // Process each reminder
+    // Process each reminder
     for (const reminder of dueReminders) {
       // Prepare the message text
       const reminderText = `⏰ *REMINDER*\n\n${reminder.message}`;
@@ -77,15 +78,14 @@ async function processReminders(client: Client): Promise<void> {
         // This is a personal reminder - send to user's phone
         await client.sendText(String(reminder.userId) as any, reminderText);
       }
-      
-      // Mark the reminder as completed
+        // Mark the reminder as completed
       reminder.isCompleted = true;
       await reminder.save();
       
-      console.log(`✅ Sent reminder #${reminder.id} to ${reminder.groupId ? 'group' : 'user'}`);
+      log.success(`Sent reminder #${reminder.id} to ${reminder.groupId ? 'group' : 'user'}`);
     }
   } catch (error) {
-    console.error('Error processing reminders:', error);
+    log.error('Error processing reminders', error);
   }
 }
 

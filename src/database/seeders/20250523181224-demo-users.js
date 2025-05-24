@@ -8,7 +8,7 @@ module.exports = {
     await queryInterface.bulkInsert('Users', [
       {
         phoneNumber: process.env.OWNER_NUMBER || '6281319916659',
-        level: 3, // Admin level (owner diperiksa dari config)
+        level: 3, // Admin level (owner is checked from config)
         registeredAt: now,
         lastActivity: now,
         createdAt: now,

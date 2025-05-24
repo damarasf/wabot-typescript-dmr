@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import config from './config';
+import logger from './logger';
 
 /**
  * N8N Integration Utility
@@ -49,7 +50,7 @@ export async function executeWorkflow({
       throw new Error('N8N configuration missing (URL or token)');
     }
     
-    console.log(`🔗 Executing N8N workflow: ${workflowId}`);
+    logger.info('Executing N8N workflow', { workflowId, dataKeys: Object.keys(data) });
     
     // Prepare request
     const url = `${config.n8nUrl}/api/v1/workflows/${workflowId}/execute`;
@@ -69,7 +70,11 @@ export async function executeWorkflow({
     
     // Handle different response statuses
     if (response.status === 200 || response.status === 201) {
-      console.log(`✅ N8N workflow executed successfully: ${workflowId}`);
+      logger.info('N8N workflow executed successfully', { 
+        workflowId, 
+        executionId: response.data?.executionId,
+        status: response.status 
+      });
       return {
         success: true,
         data: response.data,
@@ -86,7 +91,10 @@ export async function executeWorkflow({
     }
     
   } catch (error) {
-    console.error('❌ Error executing N8N workflow:', error);
+    logger.error('Error executing N8N workflow:', { 
+      error: error instanceof Error ? error.message : error,
+      workflowId 
+    });
     
     // Enhanced error handling
     if (axios.isAxiosError(error)) {
@@ -132,7 +140,7 @@ export async function executeWebhook({
       throw new Error('N8N URL configuration missing');
     }
     
-    console.log(`🪝 Executing N8N webhook: ${webhookPath}`);
+    logger.info('Executing N8N webhook', { webhookPath, dataKeys: Object.keys(data) });
     
     // Clean webhook path (remove leading slash if present)
     const cleanPath = webhookPath.startsWith('/') ? webhookPath.slice(1) : webhookPath;
@@ -148,7 +156,10 @@ export async function executeWebhook({
     
     // Handle different response statuses
     if (response.status === 200 || response.status === 201) {
-      console.log(`✅ N8N webhook executed successfully: ${webhookPath}`);
+      logger.info('N8N webhook executed successfully', { 
+        webhookPath, 
+        status: response.status 
+      });
       return {
         success: true,
         data: response.data,
@@ -162,7 +173,10 @@ export async function executeWebhook({
     }
     
   } catch (error) {
-    console.error('❌ Error executing N8N webhook:', error);
+    logger.error('Error executing N8N webhook:', { 
+      error: error instanceof Error ? error.message : error,
+      webhookPath 
+    });
     
     // Enhanced error handling
     if (axios.isAxiosError(error)) {
