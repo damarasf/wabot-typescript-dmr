@@ -22,15 +22,19 @@ export async function createUser(phone: string): Promise<User> {
   try {
     // Normalize phone number (remove non-digits)
     const normalizedPhone = phone.replace(/[^\d]/g, '');
-      const user = await User.create({
+    
+    // Determine user level - Owner gets Admin level, others get Free
+    const userLevel = normalizedPhone === config.ownerNumber ? UserLevel.ADMIN : UserLevel.FREE;
+    
+    const user = await User.create({
       phoneNumber: normalizedPhone,
-      level: UserLevel.FREE,
+      level: userLevel,
       language: Language.INDONESIAN,
       registeredAt: new Date(),
       lastActivity: new Date(),
     });
     
-    log.user(`User created: ${normalizedPhone}`);
+    log.user(`User created: ${normalizedPhone} with level ${UserLevel[userLevel]}`);
     return user;
   } catch (error) {
     log.error('Error creating user', error);

@@ -175,12 +175,15 @@ function generateWelcomeMessage(displayName: string, user: User): string {
     timeZone: 'Asia/Jakarta'
   });
   
+  // Get actual level name from user
+  const levelName = user.getLevelName();
+  
   return `🎉 *Pendaftaran Berhasil!*\n\n` +
     `Selamat datang *${displayName}*! Anda telah berhasil terdaftar sebagai pengguna ${config.botName}.\n\n` +
     `📋 *Informasi Akun:*\n` +
     `👤 *User ID:* ${user.id}\n` +
     `📱 *Nomor:* ${user.phoneNumber.replace('@c.us', '')}\n` +
-    `🏷️ *Level:* Free\n` +
+    `🏷️ *Level:* ${levelName}\n` +
     `📅 *Terdaftar:* ${registrationDate}\n\n` +
     `🚀 *Fitur yang Tersedia:*\n` +
     `• Akses ke semua perintah dasar\n` +
@@ -188,24 +191,6 @@ function generateWelcomeMessage(displayName: string, user: User): string {
     `• Pengaturan reminder\n` +
     `• Dan masih banyak lagi!\n\n` +
     `💡 *Tips:* Ketik \`!help\` untuk melihat semua perintah yang tersedia.`;
-}
-
-/**
- * Get human-readable name for user level
- * @param level - User level enum value
- * @returns Human-readable level name
- */
-function getUserLevelName(level: UserLevel): string {
-  switch (level) {
-    case UserLevel.FREE:
-      return 'Free';
-    case UserLevel.PREMIUM:
-      return 'Premium';
-    case UserLevel.ADMIN:
-      return 'Admin';
-    default:
-      return 'Free';
-  }
 }
 
 export default register;
