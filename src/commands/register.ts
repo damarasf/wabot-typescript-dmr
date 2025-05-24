@@ -1,0 +1,193 @@
+import { Message, Client } from '@open-wa/wa-automate';
+import { User, UserLevel } from '../database/models';
+import * as userManager from '../utils/userManager';
+import { Command } from '../middlewares/commandParser';
+import config from '../utils/config';
+
+/**
+ * Register Command
+ * Handles user registration for new bot users
+ * Features duplicate prevention, welcome message, and system integration
+ */
+const register: Command = {
+  name: 'register',
+  aliases: ['daftar', 'signup'],
+  description: 'Mendaftarkan diri sebagai pengguna bot',
+  usage: '!register',
+  example: '!register',
+  category: 'Umum',
+  cooldown: 10,
+
+  /**
+   * Execute the register command
+   * @param message - WhatsApp message object
+   * @param args - Command arguments (not used in registration)
+   * @param client - WhatsApp client instance
+   * @param user - Existing user object (if already registered)
+   */
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    try {
+      console.log(`📝 Processing registration request from ${message.sender.id}`);
+      
+      // Check if user is already registered
+      if (user) {
+        console.log(`⚠️ User ${message.sender.id} already registered with level ${user.level}`);
+        
+        const levelName = getUserLevelName(user.level);
+        const registrationDate = user.createdAt?.toLocaleDateString('id-ID', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'Asia/Jakarta'
+        }) || 'Tidak diketahui';
+        
+        await client.reply(
+          message.chatId,
+          `ℹ️ *Anda sudah terdaftar sebagai pengguna bot.*\n\n` +
+          `👤 *Level:* ${levelName}\n` +
+          `📅 *Terdaftar sejak:* ${registrationDate}\n\n` +
+          `💡 *Tips:* Gunakan \`!profile\` untuk melihat informasi lengkap akun Anda.`,
+          message.id
+        );
+        return;
+      }
+      
+      // Get user information
+      const phoneNumber = message.sender.id;
+      const displayName = message.sender.pushname || `User-${phoneNumber.replace('@c.us', '').slice(-4)}`;
+      
+      console.log(`🆕 Registering new user: ${phoneNumber} (${displayName})`);
+      
+      // Validate phone number format
+      if (!phoneNumber || !phoneNumber.includes('@c.us')) {
+        console.error(`❌ Invalid phone number format: ${phoneNumber}`);
+        await client.reply(
+          message.chatId,
+          '❌ Format nomor telepon tidak valid.\n\n' +
+          '_Silakan coba lagi atau hubungi administrator._',
+          message.id
+        );
+        return;
+      }
+      
+      // Create new user
+      const newUser = await userManager.createUser(phoneNumber);
+      
+      if (!newUser) {
+        console.error(`❌ Failed to create user: ${phoneNumber}`);
+        await client.reply(
+          message.chatId,
+          '❌ Gagal mendaftarkan pengguna.\n\n' +
+          '_Silakan coba lagi nanti atau hubungi administrator._',
+          message.id
+        );
+        return;
+      }
+      
+      console.log(`✅ Successfully registered user: ${phoneNumber} with ID ${newUser.id}`);
+      
+      // Generate welcome message
+      const welcomeMessage = generateWelcomeMessage(displayName, newUser);
+      
+      // Send success message
+      await client.reply(message.chatId, welcomeMessage, message.id);
+      
+      // Send additional help information after a short delay
+      setTimeout(async () => {
+        try {
+          await client.sendText(
+            message.chatId,
+            `🎯 *Langkah Selanjutnya:*\n\n` +
+            `1️⃣ Ketik \`!help\` untuk melihat semua perintah\n` +
+            `2️⃣ Ketik \`!profile\` untuk melihat profil Anda\n` +
+            `3️⃣ Ketik \`!limit\` untuk cek batas penggunaan\n\n` +
+            `💎 *Ingin upgrade ke Premium?*\n` +
+            `Hubungi administrator untuk mendapatkan akses Premium dengan fitur lebih lengkap!\n\n` +
+            `_Selamat menggunakan ${config.botName}! 🎉_`
+          );
+        } catch (followUpError) {
+          console.error('❌ Failed to send follow-up message:', followUpError);
+          // Don't fail the registration if follow-up message fails
+        }
+      }, 2000); // 2 second delay
+      
+    } catch (error) {
+      console.error('❌ Error registering user:', error);
+      
+      // Enhanced error handling with specific error types
+      let errorMessage = 'Terjadi kesalahan saat mendaftarkan pengguna.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          errorMessage = 'Anda sudah terdaftar dalam sistem.';
+        } else if (error.message.includes('database')) {
+          errorMessage = 'Terjadi kesalahan database saat pendaftaran.';
+        } else if (error.message.includes('validation')) {
+          errorMessage = 'Data pendaftaran tidak valid.';
+        }
+        console.error('Registration error details:', error.message);
+      }
+      
+      try {
+        await client.reply(
+          message.chatId,
+          `❌ ${errorMessage}\n\n_Silakan coba lagi nanti atau hubungi administrator._`,
+          message.id
+        );
+      } catch (replyError) {
+        console.error('❌ Failed to send registration error message:', replyError);
+      }
+    }
+  },
+};
+
+/**
+ * Generate a comprehensive welcome message for new users
+ * @param displayName - User's display name
+ * @param user - Newly created user object
+ * @returns Formatted welcome message
+ */
+function generateWelcomeMessage(displayName: string, user: User): string {
+  const registrationDate = new Date().toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta'
+  });
+  
+  return `🎉 *Pendaftaran Berhasil!*\n\n` +
+    `Selamat datang *${displayName}*! Anda telah berhasil terdaftar sebagai pengguna ${config.botName}.\n\n` +
+    `📋 *Informasi Akun:*\n` +
+    `👤 *User ID:* ${user.id}\n` +
+    `📱 *Nomor:* ${user.phoneNumber.replace('@c.us', '')}\n` +
+    `🏷️ *Level:* Free\n` +
+    `📅 *Terdaftar:* ${registrationDate}\n\n` +
+    `🚀 *Fitur yang Tersedia:*\n` +
+    `• Akses ke semua perintah dasar\n` +
+    `• Integrasi dengan N8N workflows\n` +
+    `• Pengaturan reminder\n` +
+    `• Dan masih banyak lagi!\n\n` +
+    `💡 *Tips:* Ketik \`!help\` untuk melihat semua perintah yang tersedia.`;
+}
+
+/**
+ * Get human-readable name for user level
+ * @param level - User level enum value
+ * @returns Human-readable level name
+ */
+function getUserLevelName(level: UserLevel): string {
+  switch (level) {
+    case UserLevel.FREE:
+      return 'Free';
+    case UserLevel.PREMIUM:
+      return 'Premium';
+    case UserLevel.ADMIN:
+      return 'Admin';
+    default:
+      return 'Free';
+  }
+}
+
+export default register;
