@@ -28,7 +28,7 @@ export const broadcastCommand: Command = {
   name: 'broadcast',
   aliases: ['bc', 'send'],
   description: 'Broadcast pesan ke pengguna terdaftar (khusus owner)',
-  category: 'owner',
+  category: 'Owner',
   cooldown: 30,
   usage: 'broadcast <pesan> [level]',
   example: 'broadcast Halo semua! atau broadcast Pesan khusus premium premium',

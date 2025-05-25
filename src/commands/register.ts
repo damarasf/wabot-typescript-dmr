@@ -181,7 +181,6 @@ function generateWelcomeMessage(displayName: string, user: User): string {
   return `🎉 *Pendaftaran Berhasil!*\n\n` +
     `Selamat datang *${displayName}*! Anda telah berhasil terdaftar sebagai pengguna ${config.botName}.\n\n` +
     `📋 *Informasi Akun:*\n` +
-    `👤 *User ID:* ${user.id}\n` +
     `📱 *Nomor:* ${user.phoneNumber.replace('@c.us', '')}\n` +
     `🏷️ *Level:* ${levelName}\n` +
     `📅 *Terdaftar:* ${registrationDate}\n\n` +

@@ -77,9 +77,7 @@ const tagall: Command = {
           message.id
         );
         return;
-      }
-      
-      // Get group information
+      }      // Get group information
       const groupMetadata = message.chat.groupMetadata;
       if (!groupMetadata) {
         logger.error('Could not retrieve group metadata', { chatId: message.chatId });
@@ -91,7 +89,27 @@ const tagall: Command = {
         );
         return;
       }
-        const groupMembers = groupMetadata.participants || [];
+        
+      const groupMembers = groupMetadata.participants || [];
+      // Get bot's own number using methods that exist in the library
+      
+      let botNumber: string;
+      try {
+        // getMe() is a documented method in @open-wa/wa-automate
+        const botInfo = await client.getMe();
+        // The bot ID should be in the 'me' field of the returned object
+        botNumber = botInfo?.me?.user || botInfo?.wid || config.ownerNumber + '@c.us';
+        
+        // Ensure it has the correct format
+        if (!botNumber.includes('@c.us')) {
+          botNumber = botNumber + '@c.us';
+        }
+      } catch (error) {
+        logger.debug('Failed to get bot number with getMe, using owner number as fallback', { error });
+        botNumber = config.ownerNumber + '@c.us';
+      }
+      
+      logger.debug(`Bot number identified as: ${botNumber}`, { botNumber });
       
       // Get group name from chat object or use fallback
       let groupName: string;
@@ -114,14 +132,32 @@ const tagall: Command = {
           message.id
         );
         return;
-      }
-      
-      // Generate tag message
+      }      // Generate tag message
       const customMessage = args.length > 0 ? args.join(' ') : 'Perhatian semua anggota grup!';
-      const { mentions, mentionIds } = generateMentions(groupMembers);
+      
+      // Log before generating mentions for debugging purposes
+      logger.debug('Preparing to tag members', {
+        totalMembers: groupMembers.length,
+        botNumber: botNumber,
+        senderId: message.sender.id
+      });
+      
+      const { mentions, mentionIds } = generateMentions(groupMembers, botNumber, message.sender.id);
+      
+      // Log after generating mentions
+      logger.debug('Generated mentions', {
+        mentionCount: mentionIds.length,
+        excludedCount: groupMembers.length - mentionIds.length
+      });
       
       // Create comprehensive tag message
-      const finalMessage = formatTagMessage(customMessage, mentions, groupName, message.sender.pushname);
+      const finalMessage = formatTagMessage(
+        customMessage, 
+        mentions, 
+        groupName, 
+        message.sender.pushname,
+        message.sender.id
+      );
       
       logger.command(`Tagging ${mentionIds.length} members with message: "${customMessage}"`, {
         userId: message.sender.id,
@@ -258,14 +294,40 @@ async function checkTagAllPermissions(message: Message, user: User, client: Clie
 /**
  * Generate mentions string and IDs array from group members
  * @param groupMembers - Array of group participants
+ * @param botNumber - Bot's own number to exclude from mentions
+ * @param senderId - Sender's ID to exclude from mentions
  * @returns Object containing mentions string and mention IDs array
  */
-function generateMentions(groupMembers: any[]): { mentions: string; mentionIds: string[] } {
+function generateMentions(groupMembers: any[], botNumber?: string, senderId?: string): { mentions: string; mentionIds: string[] } {
   let mentions = '';
   const mentionIds: string[] = [];
   
-  for (const member of groupMembers) {
+  // Debug info
+  logger.debug('Parameters for mention generation', {
+    groupMemberCount: groupMembers.length,
+    botNumber: botNumber,
+    senderId: senderId
+  });
+    for (const member of groupMembers) {
     const memberId = String(member.id);
+    
+    // Normalize IDs for comparison by removing the @c.us suffix
+    const normalizedMemberId = memberId.replace('@c.us', '');
+    const normalizedBotNumber = botNumber ? botNumber.replace('@c.us', '') : '';
+    const normalizedSenderId = senderId ? senderId.replace('@c.us', '') : '';
+    
+    // Skip the bot itself if botNumber is provided
+    if (botNumber && normalizedMemberId === normalizedBotNumber) {
+      logger.debug(`Skipping bot from mentions: ${memberId}`);
+      continue;
+    }
+    
+    // Skip the command sender if senderId is provided
+    if (senderId && normalizedMemberId === normalizedSenderId) {
+      logger.debug(`Skipping sender from mentions: ${memberId}`);
+      continue;
+    }
+    
     mentions += `@${memberId.replace('@c.us', '')} `;
     mentionIds.push(member.id);
   }
@@ -279,9 +341,10 @@ function generateMentions(groupMembers: any[]): { mentions: string; mentionIds: 
  * @param mentions - Generated mentions string
  * @param groupName - Name of the group
  * @param senderName - Name of the sender
+ * @param senderId - ID of the sender for tagging
  * @returns Formatted message string
  */
-function formatTagMessage(customMessage: string, mentions: string, groupName?: string, senderName?: string): string {
+function formatTagMessage(customMessage: string, mentions: string, groupName?: string, senderName?: string, senderId?: string): string {
   const timestamp = new Date().toLocaleString('id-ID', {
     year: 'numeric',
     month: 'short',
@@ -290,13 +353,24 @@ function formatTagMessage(customMessage: string, mentions: string, groupName?: s
     minute: '2-digit',
     timeZone: 'Asia/Jakarta'
   });
-  
+
   const sender = senderName || 'Admin';
   const group = groupName || 'Grup ini';
   
+  // Normalize sender ID for tagging - simply use the phone number without the @c.us suffix
+  const normalizedSenderId = senderId ? senderId.replace('@c.us', '') : null;
+  const senderTag = normalizedSenderId ? `@${normalizedSenderId}` : sender;
+  
+  logger.debug('Formatting tag message', {
+    sender,
+    senderTag,
+    senderId,
+    normalizedSenderId
+  });
+  
   return `📢 *TAG ALL - ${group}*\n\n` +
     `💬 *Pesan:* ${customMessage}\n\n` +
-    `👤 *Dari:* ${sender}\n` +
+    `👤 *Dari:* ${sender} - ${senderTag}\n` +
     `🕐 *Waktu:* ${timestamp}\n\n` +
     `👥 *Anggota yang ditag:*\n${mentions}\n\n` +
     `_Pesan ini dikirim menggunakan fitur Tag All_`;

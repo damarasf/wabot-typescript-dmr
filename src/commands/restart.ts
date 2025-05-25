@@ -26,7 +26,7 @@ export const restartCommand: Command = {
   name: 'restart',
   aliases: ['reboot', 'reloadbot'],
   description: 'Restart bot dengan aman (khusus owner)',
-  category: 'owner',
+  category: 'Owner',
   cooldown: 10,
   usage: 'restart [confirm]',
   example: 'restart atau restart confirm',
