@@ -1,5 +1,5 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { parseCommand } from '../middlewares/commandParser';
+import { parseCommand, checkAndSendUsageHint } from '../middlewares/commandParser';
 import { getCommand } from './commandHandler';
 import { Group } from '../database/models';
 import * as userManager from '../utils/userManager';
@@ -13,10 +13,13 @@ export async function handleMessage(client: Client, message: Message): Promise<v
     if (message.isGroupMsg && (message.body === '@bot' || message.body === '@' + config.botName)) {
       return;
     }
-    
-    // Parse the command
+      // Parse the command
     const parsedCommand = await parseCommand(message);
-    if (!parsedCommand) return;
+    if (!parsedCommand) {
+      // Check if user needs usage hint for incomplete multi-word commands
+      const usageHintSent = await checkAndSendUsageHint(message, client);
+      return;
+    }
     
     const { command: commandInfo, args, user } = parsedCommand;    // Find the command in the handler
     const command = getCommand(commandInfo.name);

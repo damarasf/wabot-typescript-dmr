@@ -3,6 +3,7 @@ import { User, UserLevel } from '../database/models';
 import config from '../utils/config';
 import * as userManager from '../utils/userManager';
 import { isOwner, normalizePhoneNumber } from '../utils/phoneUtils';
+import { formatHelpCommand } from '../utils/formatter';
 
 // Command interface
 export interface Command {
@@ -30,6 +31,41 @@ export interface CommandWithContext {
 
 // Last command usage timestamp cache to prevent spam
 const cooldowns = new Map<string, Map<string, number>>();
+
+// Check if user needs usage hint for multi-word commands
+export async function checkAndSendUsageHint(message: Message, client: Client): Promise<boolean> {
+  // Get prefix from message
+  const prefix = getPrefix(message.body);
+  if (!prefix) return false;
+  
+  // Split message by spaces
+  const args = message.body.slice(prefix.length).trim().split(/\s+/);
+  
+  // Get command name
+  const commandName = args.shift()?.toLowerCase();
+  if (!commandName) return false;
+  
+  // Find command in commands collection
+  const command = findCommand(commandName);
+  if (!command) return false;
+  
+  // Check if command requires more than 1 argument and user provided insufficient args
+  if (command.requiredArgs && command.requiredArgs > 1 && args.length < command.requiredArgs) {
+    try {
+      // Send usage hint with formatted command help
+      const usageHint = `⚠️ *Penggunaan Perintah Tidak Lengkap*\n\n` +
+        `${formatHelpCommand(command)}\n\n` +
+        `💡 *Tips:* Anda perlu melengkapi semua parameter yang diperlukan untuk perintah ini.`;
+      
+      await client.reply(message.chatId, usageHint, message.id);
+      return true; // Indicates that usage hint was sent
+    } catch (error) {
+      console.error('Error sending usage hint:', error);
+    }
+  }
+  
+  return false; // No usage hint needed or sent
+}
 
 // Parse and validate command
 export async function parseCommand(message: Message): Promise<CommandWithContext | null> {
@@ -158,4 +194,5 @@ async function validateCommandUsage(
 export default {
   parseCommand,
   getPrefix,
+  checkAndSendUsageHint,
 };
