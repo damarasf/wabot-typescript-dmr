@@ -5,7 +5,7 @@ module.exports = {
   async up (queryInterface, Sequelize) {
     const now = new Date();
     
-    await queryInterface.bulkInsert('Groups', [
+    await queryInterface.bulkInsert('groups', [
       {
         groupId: '628123456789-123456789@g.us',
         joinedAt: now,

@@ -5,6 +5,7 @@ import { Command } from '../middlewares/commandParser';
 import { getText, getLevelName } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { getDisplayPhoneNumber, isValidWhatsAppFormat } from '../utils/phoneUtils';
 
 /**
  * Register Command
@@ -63,16 +64,17 @@ const register: Command = {
         );
         return;
       }
-      
-      // Get user information
+        // Get user information
       const phoneNumber = message.sender.id;
-      const displayName = message.sender.pushname || `User-${phoneNumber.replace('@c.us', '').slice(-4)}`;
+      const displayName = message.sender.pushname || `User-${getDisplayPhoneNumber(phoneNumber).slice(-4)}`;
       
       logger.user('Registering new user', { 
-        phoneNumber: phoneNumber.replace('@c.us', ''), 
+        phoneNumber: getDisplayPhoneNumber(phoneNumber), 
         displayName 
-      });      // Validate phone number format
-      if (!phoneNumber || !phoneNumber.includes('@c.us')) {
+      });
+
+      // Validate phone number format
+      if (!isValidWhatsAppFormat(phoneNumber)) {
         logger.error('Invalid phone number format', { phoneNumber });
         await client.reply(
           message.chatId,
@@ -93,9 +95,8 @@ const register: Command = {
         );
         return;
       }
-      
-      logger.success('User registration completed', { 
-        phoneNumber: phoneNumber.replace('@c.us', ''), 
+        logger.success('User registration completed', { 
+        phoneNumber: getDisplayPhoneNumber(phoneNumber), 
         userId: newUser.id 
       });
       
@@ -177,11 +178,10 @@ function generateWelcomeMessage(displayName: string, user: User): string {
   
   // Get actual level name from user
   const levelName = user.getLevelName();
-  
-  return `🎉 *Pendaftaran Berhasil!*\n\n` +
+    return `🎉 *Pendaftaran Berhasil!*\n\n` +
     `Selamat datang *${displayName}*! Anda telah berhasil terdaftar sebagai pengguna ${config.botName}.\n\n` +
     `📋 *Informasi Akun:*\n` +
-    `📱 *Nomor:* ${user.phoneNumber.replace('@c.us', '')}\n` +
+    `📱 *Nomor:* ${user.phoneNumber}\n` +
     `🏷️ *Level:* ${levelName}\n` +
     `📅 *Terdaftar:* ${registrationDate}\n\n` +
     `🚀 *Fitur yang Tersedia:*\n` +

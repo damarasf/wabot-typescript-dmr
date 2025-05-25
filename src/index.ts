@@ -5,6 +5,7 @@ import commandHandler from './handlers/commandHandler';
 import startScheduler from './utils/scheduler';
 import config from './utils/config';
 import { log } from './utils/logger';
+import { getDisplayPhoneNumber, formatForWhatsApp } from './utils/phoneUtils';
 
 // Main bot initialization
 const start = async (client: Client) => {  
@@ -50,13 +51,12 @@ const start = async (client: Client) => {
       }
     });
   }
-
   // Handle message deletion if anti-delete is enabled
   if (config.antiDelete) {
     client.onAnyMessage(async (message: any) => {
       try {
         if (message.type === 'revoked' && message.body && message.from) {
-          const antiDeleteMessage = `🚫 *Anti-Delete System*\n\n👤 *Pengirim:* @${message.sender.id.replace('@c.us', '')}\n📝 *Pesan yang dihapus:* ${message.body}\n⏰ *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
+          const antiDeleteMessage = `🚫 *Anti-Delete System*\n\n👤 *Pengirim:* @${getDisplayPhoneNumber(message.sender.id)}\n📝 *Pesan yang dihapus:* ${message.body}\n⏰ *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
           
           await client.sendTextWithMentions(message.from, antiDeleteMessage);
         }
@@ -64,13 +64,11 @@ const start = async (client: Client) => {
         log.error('Error handling deleted message', error);
       }
     });
-  }
-
-  // Auto restart functionality
+  }  // Auto restart functionality
   if (config.autoRestartTime > 0) {
     setTimeout(async () => {
       log.system('Auto restart triggered');
-      await client.sendText(`${config.ownerNumber}@c.us` as any, '🔄 Bot sedang restart otomatis...');
+      await client.sendText(formatForWhatsApp(config.ownerNumber) as any, '🔄 Bot sedang restart otomatis...');
       process.exit(0);
     }, config.autoRestartTime);
   }

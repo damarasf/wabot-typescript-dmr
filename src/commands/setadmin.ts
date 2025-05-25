@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { normalizePhoneNumber, formatForWhatsApp, getDisplayPhoneNumber, isOwner } from '../utils/phoneUtils';
 
 /**
  * Set Admin Command
@@ -34,10 +35,9 @@ const setadmin: Command = {
         args,
         chatId: message.chatId
       });
-      
-      // Additional owner verification (safety check)
-      if (String(message.sender.id) !== config.ownerNumber) {
-        logger.security(`Unauthorized setadmin attempt by ${message.sender.id}`);
+        // Additional owner verification (safety check)
+      if (!isOwner(message.sender.id, config.ownerNumber)) {
+        logger.security(`Unauthorized setadmin attempt by ${getDisplayPhoneNumber(message.sender.id)}`);
         await client.reply(
           message.chatId,
           '🚫 *Akses Ditolak*\n\n' +
@@ -59,21 +59,10 @@ const setadmin: Command = {
         logger.debug(`Target user from mention: ${targetUserId}`, {
           targetUserId,
           userId: message.sender.id
-        });
-      } else if (args.length > 0) {
-        // Try to parse as phone number
-        let phoneNumber = args[0].trim();
-        
-        // Clean and normalize phone number
-        phoneNumber = phoneNumber.replace(/[^\d]/g, '');
-        if (phoneNumber.startsWith('0')) {
-          phoneNumber = '62' + phoneNumber.substring(1);
-        }
-        if (!phoneNumber.startsWith('62')) {
-          phoneNumber = '62' + phoneNumber;
-        }
-        
-        targetUserId = phoneNumber + '@c.us';
+        });      } else if (args.length > 0) {
+        // Try to parse as phone number using utility function
+        const phoneNumber = normalizePhoneNumber(args[0].trim());
+        targetUserId = formatForWhatsApp(phoneNumber);
         displayMethod = 'phone';
         logger.debug(`Target user from phone: ${targetUserId}`, {
           targetUserId,
@@ -95,13 +84,11 @@ const setadmin: Command = {
           message.id
         );
         return;
-      }
-
-      // Normalize target user ID for database lookup
-      const normalizedPhone = targetUserId.replace('@c.us', '');
+      }      // Normalize target user ID for database lookup using utility function
+      const normalizedPhone = getDisplayPhoneNumber(targetUserId);
       
       // Prevent self-promotion (though owner should already have admin privileges)
-      if (String(targetUserId) === config.ownerNumber) {
+      if (isOwner(targetUserId, config.ownerNumber)) {
         await client.reply(
           message.chatId,
           '⚠️ *Aksi Tidak Diperlukan*\n\n' +

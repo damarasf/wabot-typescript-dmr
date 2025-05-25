@@ -1,7 +1,9 @@
 import { Client, Message, ContactId } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
 import { User, Usage } from '../database/models';
+import * as userManager from '../utils/userManager';
 import { log } from '../utils/logger';
+import { normalizePhoneNumber, getDisplayPhoneNumber } from '../utils/phoneUtils';
 
 /**
  * Reset Limit Command
@@ -116,12 +118,11 @@ export const resetlimitCommand: Command = {
           message.from,
           `*✅ Reset Berhasil*\n\n` +
             `🎉 *Reset ALL Selesai!*\n\n` +
-            `📊 *Statistik Reset:*\n` +
-            `• Data usage dihapus: ${resetCount}\n` +
+            `📊 *Statistik Reset:*\n` +            `• Data usage dihapus: ${resetCount}\n` +
             `• Pengguna terpengaruh: ${totalUsers}\n` +
             `• Waktu proses: ${processingTime}s\n\n` +
             `⏰ *Waktu reset:* ${currentTime}\n` +
-            `👑 *Admin:* @${message.sender.id.replace('@c.us', '')}\n\n` +
+            `👑 *Admin:* @${getDisplayPhoneNumber(message.sender.id)}\n\n` +
             `✨ Semua pengguna kini dapat menggunakan fitur kembali!`,
           message.id
         );
@@ -154,16 +155,11 @@ export const resetlimitCommand: Command = {
             `🗑️ Menghapus data usage...\n\n` +
             `⏰ Mohon tunggu sebentar...`,
           message.id
-        );
-
-        for (const mentionedJid of message.mentionedJidList) {
+        );        for (const mentionedJid of message.mentionedJidList) {
           try {
-            const phoneNumber = mentionedJid.replace('@c.us', '');
-            
-            // Find user in database
-            const targetUser = await User.findOne({
-              where: { phoneNumber }
-            });
+            const phoneNumber = getDisplayPhoneNumber(mentionedJid);
+              // Find user in database using userManager for consistency
+            const targetUser = await userManager.getUserByPhone(mentionedJid);
 
             if (targetUser) {
               // Get usage count before reset
@@ -191,10 +187,9 @@ export const resetlimitCommand: Command = {
             } else {
               notFoundUsers.push(`❌ ${phoneNumber} (tidak terdaftar)`);
               notFoundCount++;
-            }
-          } catch (error) {
+            }          } catch (error) {
             log.error(`Error processing mention ${mentionedJid}`, error);
-            notFoundUsers.push(`❌ ${mentionedJid.replace('@c.us', '')} (error)`);
+            notFoundUsers.push(`❌ ${getDisplayPhoneNumber(mentionedJid)} (error)`);
             notFoundCount++;
           }
         }
@@ -229,24 +224,14 @@ export const resetlimitCommand: Command = {
 
         log.success(`Reset mentions completed: ${resetCount}/${message.mentionedJidList.length} users reset by ${message.sender.id}`);
         return;
-      }
-
-      // Handle phone number reset
-      const phoneArg = args[0].replace(/[^0-9]/g, '');
-      if (phoneArg.length >= 10) {
+      }      // Handle phone number reset
+      const phoneArg = args[0];
+      if (phoneArg && phoneArg.length >= 10) {
         log.info(`Reset phone processing ${phoneArg} by admin: ${message.sender.id}`);
-        
-        // Normalize phone number
-        let normalizedPhone = phoneArg;
-        if (phoneArg.startsWith('0')) {
-          normalizedPhone = '62' + phoneArg.substring(1);
-        } else if (!phoneArg.startsWith('62')) {
-          normalizedPhone = '62' + phoneArg;
-        }
+          // Normalize phone number using utility function
+        const normalizedPhone = normalizePhoneNumber(phoneArg);
 
-        const targetUser = await User.findOne({
-          where: { phoneNumber: normalizedPhone }
-        });
+        const targetUser = await userManager.getUserByPhone(phoneArg);
 
         if (targetUser) {
           // Get usage count before reset

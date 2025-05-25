@@ -3,6 +3,7 @@ import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { isOwner } from '../utils/phoneUtils';
 
 /**
  * Clear All Command
@@ -19,22 +20,23 @@ export const clearallCommand: Command = {
   example: '!clearall CONFIRM',
   adminOnly: false,
   ownerOnly: true,
-    /**
+    
+  /**
    * Execute the clearall command
    * @param message - WhatsApp message object
    * @param args - Command arguments [CONFIRM]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {
-      logger.command('Processing clearall command from owner', {
+   */  
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    try {      logger.command('Processing clearall command from owner', {
         userId: message.sender.id,
         command: 'clearall',
         args: args.length
       });
-      
+
       // Additional owner verification (safety check)
-      if (String(message.sender.id) !== config.ownerNumber) {
+      if (!isOwner(message.sender.id, config.ownerNumber)) {
         logger.security('Unauthorized clearall attempt', {
           userId: message.sender.id,
           command: 'clearall',

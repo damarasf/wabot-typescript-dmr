@@ -2,6 +2,7 @@ import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel } from '../database/models';
 import config from '../utils/config';
 import * as userManager from '../utils/userManager';
+import { isOwner, normalizePhoneNumber } from '../utils/phoneUtils';
 
 // Command interface
 export interface Command {
@@ -45,24 +46,26 @@ export async function parseCommand(message: Message): Promise<CommandWithContext
   
   // Find command in commands collection
   const command = findCommand(commandName);
-  if (!command) return null;
-  
-  // Get user from database if not owner
+  if (!command) return null;  // Get user from database - always lookup user object, even for owner
   let user: User | undefined;
-  if (message.sender.id !== config.ownerNumber) {
-    const existingUser = await userManager.getUserByPhone(message.sender.id);
-    
-    // Check if command requires registration
-    if (command.minimumLevel && command.minimumLevel > UserLevel.UNREGISTERED && !existingUser) {
-      return null; // User needs to register first
-    }
-    
-    if (existingUser) {
-      user = existingUser;
-      // Update user's last active timestamp
-      await userManager.updateUserActivity(existingUser);
-    }
+  const userIsOwner = isOwner(message.sender.id, config.ownerNumber);
+  
+  // Always get user from database for consistency
+  const existingUser = await userManager.getUserByPhone(message.sender.id);
+  
+  // For non-owners, check if command requires registration
+  if (!userIsOwner && command.minimumLevel && command.minimumLevel > UserLevel.UNREGISTERED && !existingUser) {
+    return null; // User needs to register first
   }
+  
+  if (existingUser) {
+    user = existingUser;
+    // Update user's last active timestamp
+    await userManager.updateUserActivity(existingUser);
+  }
+  
+  // For owners without database record, they can still access owner-only commands
+  // but commands that require user data will need to handle undefined user gracefully
   
   // Validate command usage
   const validationResult = await validateCommandUsage(command, message, user);
@@ -96,18 +99,20 @@ async function validateCommandUsage(
   message: Message,
   user?: User
 ): Promise<{ valid: boolean; reason?: string }> {
+  const userIsOwner = isOwner(message.sender.id, config.ownerNumber);
+  
   // Check if command is owner-only
-  if (command.ownerOnly && message.sender.id !== config.ownerNumber) {
+  if (command.ownerOnly && !userIsOwner) {
     return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh owner bot.' };
   }
   
   // Check if command is admin-only
-  if (command.adminOnly && (!user || user.level < UserLevel.ADMIN) && message.sender.id !== config.ownerNumber) {
+  if (command.adminOnly && (!user || user.level < UserLevel.ADMIN) && !userIsOwner) {
     return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh admin bot.' };
   }
   
   // Check minimum user level
-  if (command.minimumLevel && (!user || user.level < command.minimumLevel) && message.sender.id !== config.ownerNumber) {
+  if (command.minimumLevel && (!user || user.level < command.minimumLevel) && !userIsOwner) {
     return { valid: false, reason: `Perintah ini memerlukan level minimal ${UserLevel[command.minimumLevel]}.` };
   }
   

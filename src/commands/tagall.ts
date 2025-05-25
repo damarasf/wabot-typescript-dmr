@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { getDisplayPhoneNumber, isOwner } from '../utils/phoneUtils';
 
 /**
  * Tag All Command
@@ -246,28 +247,24 @@ const tagall: Command = {
  * @returns Boolean indicating permission status
  */
 async function checkTagAllPermissions(message: Message, user: User, client: Client): Promise<boolean> {
-  try {
-    // Check if user is admin in the group
+  try {    // Check if user is admin in the group
     const isGroupAdmin = message.chat.groupMetadata?.participants
       ?.filter(p => p.isAdmin)
-      .some(admin => String(admin.id) === String(message.sender.id)) || false;
-    
-    // Check if user is bot owner
-    const isOwner = String(message.sender.id) === config.ownerNumber;
+      .some(admin => String(admin.id) === String(message.sender.id)) || false;    // Check if user is bot owner
+    const isOwnerFlag = isOwner(message.sender.id, config.ownerNumber);
     
     // Check if user has Admin level
     const isAdminLevel = user && user.level >= UserLevel.ADMIN;
-    
-    logger.debug(`Permission check for ${message.sender.id}`, {
+      logger.debug(`Permission check for ${message.sender.id}`, {
       userId: message.sender.id,
       isGroupAdmin,
-      isOwner,
+      isOwner: isOwnerFlag,
       isAdminLevel,
       groupId: message.chatId
     });
     
     // Allow usage by: group admins, bot owner, or users with Admin level
-    if (!isGroupAdmin && !isOwner && !isAdminLevel) {
+    if (!isGroupAdmin && !isOwnerFlag && !isAdminLevel) {
       await client.reply(
         message.chatId,
         '🚫 *Akses Ditolak*\n\n' +
@@ -308,13 +305,13 @@ function generateMentions(groupMembers: any[], botNumber?: string, senderId?: st
     botNumber: botNumber,
     senderId: senderId
   });
-    for (const member of groupMembers) {
+  for (const member of groupMembers) {
     const memberId = String(member.id);
     
-    // Normalize IDs for comparison by removing the @c.us suffix
-    const normalizedMemberId = memberId.replace('@c.us', '');
-    const normalizedBotNumber = botNumber ? botNumber.replace('@c.us', '') : '';
-    const normalizedSenderId = senderId ? senderId.replace('@c.us', '') : '';
+    // Normalize IDs for comparison using utility function
+    const normalizedMemberId = getDisplayPhoneNumber(memberId);
+    const normalizedBotNumber = botNumber ? getDisplayPhoneNumber(botNumber) : '';
+    const normalizedSenderId = senderId ? getDisplayPhoneNumber(senderId) : '';
     
     // Skip the bot itself if botNumber is provided
     if (botNumber && normalizedMemberId === normalizedBotNumber) {
@@ -328,7 +325,7 @@ function generateMentions(groupMembers: any[], botNumber?: string, senderId?: st
       continue;
     }
     
-    mentions += `@${memberId.replace('@c.us', '')} `;
+    mentions += `@${getDisplayPhoneNumber(memberId)} `;
     mentionIds.push(member.id);
   }
   
@@ -356,9 +353,8 @@ function formatTagMessage(customMessage: string, mentions: string, groupName?: s
 
   const sender = senderName || 'Admin';
   const group = groupName || 'Grup ini';
-  
-  // Normalize sender ID for tagging - simply use the phone number without the @c.us suffix
-  const normalizedSenderId = senderId ? senderId.replace('@c.us', '') : null;
+    // Normalize sender ID for tagging using utility function
+  const normalizedSenderId = senderId ? getDisplayPhoneNumber(senderId) : null;
   const senderTag = normalizedSenderId ? `@${normalizedSenderId}` : sender;
   
   logger.debug('Formatting tag message', {

@@ -58,12 +58,17 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
       return this.phoneNumber;
     }
   }
-
   // Check if user is owner based on config
   public isOwner(): boolean {
-    const config = require('../../utils/config').default;
-    return this.phoneNumber === config.ownerNumber;
+    // Cache config to avoid multiple requires
+    if (!this._configCache) {
+      this._configCache = require('../../utils/config').default;
+    }
+    return this.phoneNumber === this._configCache.ownerNumber;
   }
+
+  // Cache for config to avoid multiple requires
+  private _configCache?: any;
 
   // Get user level name
   public getLevelName(): string {

@@ -5,6 +5,7 @@ import * as userManager from '../utils/userManager';
 import { formatNumber } from '../utils/formatter';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { getDisplayPhoneNumber, isOwner } from '../utils/phoneUtils';
 
 /**
  * Set Limit Command
@@ -35,12 +36,11 @@ const setlimit: Command = {
         args,
         chatId: message.chatId
       });
-      
-      // Additional permission check (safety)
-      const isOwner = String(message.sender.id) === config.ownerNumber;
+        // Additional permission check (safety)
+      const isOwnerFlag = isOwner(message.sender.id, config.ownerNumber);
       const isAdmin = user && user.level >= UserLevel.ADMIN;
       
-      if (!isOwner && !isAdmin) {
+      if (!isOwnerFlag && !isAdmin) {
         logger.user(`Unauthorized setlimit attempt by ${message.sender.id}`);
         await client.reply(
           message.chatId,
@@ -193,10 +193,8 @@ const setlimit: Command = {
         if (args.length < 4 || args[3].toUpperCase() !== 'CONFIRM') {
           return;
         }
-      }
-
-      // Normalize target user ID for database lookup
-      const normalizedPhone = targetUserId.replace('@c.us', '');
+      }      // Normalize target user ID for database lookup using utility function
+      const normalizedPhone = getDisplayPhoneNumber(targetUserId);
       
       // Check if target user exists in database
       const targetUser = await userManager.getUserByPhone(normalizedPhone);
