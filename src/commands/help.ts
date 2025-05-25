@@ -27,7 +27,8 @@ const help: Command = {
    * @param args - Command arguments [optional: command_name]
    * @param client - WhatsApp client instance
    * @param user - User database object for permission filtering
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       
       // Get user information for permission filtering
@@ -254,6 +255,7 @@ function getCommandIcon(category: string): string {
     'Umum': '🔧',
     'Admin': '⚡',
     'Premium': '💎',
+    'Owner': '👑',
     'Utilitas': '🛠️',
     'Fun': '🎮',
     'Moderation': '🛡️',

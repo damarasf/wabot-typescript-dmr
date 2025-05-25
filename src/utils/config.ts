@@ -6,12 +6,23 @@ import fs from 'fs';
 dotenvConfig();
 
 /**
+ * Utility function to ensure phone number has @c.us suffix
+ * @param phoneNumber - The phone number to format
+ * @returns The phone number with @c.us suffix
+ */
+const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return phoneNumber;
+  return phoneNumber.endsWith('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
+};
+
+/**
  * Configuration interface for the WhatsApp bot
  */
 interface Config {
   // Bot configuration
   botName: string;
   ownerNumber: string;
+  ownerNumberFormatted: string; // Formatted owner number with @c.us suffix
   prefixes: string[];
   antiCall: boolean;
   antiDelete: boolean;
@@ -41,7 +52,8 @@ interface Config {
 const defaultConfig: Config = {
   // Bot configuration
   botName: 'DMR-Bot',
-  ownerNumber: '628xxxxxxxxxx', // Change this to your actual number
+  ownerNumber: '628xxxxxxxxxx', // Replace with your actual owner number
+  ownerNumberFormatted: formatPhoneNumber('628xxxxxxxxxx'), // Ensure this is formatted correctly
   prefixes: ['!', '#', '/', '.'],
   antiCall: true,
   antiDelete: true,
@@ -72,6 +84,7 @@ const config: Config = {
   // Bot configuration
   botName: process.env.BOT_NAME || defaultConfig.botName,
   ownerNumber: process.env.OWNER_NUMBER || defaultConfig.ownerNumber,
+  ownerNumberFormatted: formatPhoneNumber(process.env.OWNER_NUMBER || defaultConfig.ownerNumberFormatted),
   prefixes: process.env.BOT_PREFIX ? process.env.BOT_PREFIX.split(',') : defaultConfig.prefixes,
   antiCall: process.env.ANTI_CALL === 'true' || defaultConfig.antiCall,
   antiDelete: process.env.ANTI_DELETE === 'true' || defaultConfig.antiDelete,

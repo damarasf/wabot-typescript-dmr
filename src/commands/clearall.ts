@@ -19,26 +19,31 @@ export const clearallCommand: Command = {
   example: '!clearall CONFIRM',
   adminOnly: false,
   ownerOnly: true,
-    /**
+    
+  /**
    * Execute the clearall command
    * @param message - WhatsApp message object
    * @param args - Command arguments [CONFIRM]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */  
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
       logger.command('Processing clearall command from owner', {
         userId: message.sender.id,
         command: 'clearall',
         args: args.length
       });
+
+      const ownerNumber = config.ownerNumberFormatted;
+      const isOwner = String(message.sender.id) === ownerNumber;
       
       // Additional owner verification (safety check)
-      if (String(message.sender.id) !== config.ownerNumber) {
+      if (isOwner) {
         logger.security('Unauthorized clearall attempt', {
           userId: message.sender.id,
           command: 'clearall',
-          ownerNumber: config.ownerNumber
+          ownerNumber: ownerNumber
         });
         await client.reply(
           message.chatId,
