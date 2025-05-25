@@ -1,7 +1,6 @@
 import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
-import { formatBox } from '../utils/formatter';
 import { getText, isValidLanguage } from '../utils/i18n';
 import logger from '../utils/logger';
 
@@ -46,11 +45,9 @@ const language: Command = {
         
         const helpText = user.language === Language.INDONESIAN
           ? '🌐 Gunakan: !language [id/en]\n• id = Bahasa Indonesia\n• en = English'
-          : '🌐 Usage: !language [id/en]\n• id = Indonesian\n• en = English';
-
-        await client.reply(
+          : '🌐 Usage: !language [id/en]\n• id = Indonesian\n• en = English';        await client.reply(
           message.chatId,
-          formatBox('Language Settings', `${currentLangText}\n\n${helpText}`),
+          `*🌐 Language Settings*\n\n${currentLangText}\n\n${helpText}`,
           message.id
         );
         return;
@@ -96,14 +93,9 @@ const language: Command = {
 
       const infoText = newLanguage === Language.INDONESIAN
         ? '📱 Semua respon bot sekarang akan menggunakan Bahasa Indonesia.\n💡 Ketik !help untuk melihat menu dalam bahasa baru.'
-        : '📱 All bot responses will now use English.\n💡 Type !help to see the menu in your new language.';
-
-      await client.reply(
+        : '📱 All bot responses will now use English.\n💡 Type !help to see the menu in your new language.';      await client.reply(
         message.chatId,
-        formatBox(
-          newLanguage === Language.INDONESIAN ? 'Pengaturan Bahasa' : 'Language Settings',
-          `${successText}\n\n${infoText}`
-        ),
+        `*${newLanguage === Language.INDONESIAN ? '🌐 Pengaturan Bahasa' : '🌐 Language Settings'}*\n\n${successText}\n\n${infoText}`,
         message.id
       );
 

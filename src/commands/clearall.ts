@@ -57,9 +57,8 @@ export const clearallCommand: Command = {
           argsProvided: args.length,
           firstArg: args[0] || 'none'
         });
-        
-        const warningMessage = `🚨 *PERINGATAN*\n\n` +
-          `⚠️ **OPERASI PEMBERSIHAN CHAT**\n` +
+          const warningMessage = `🚨 *PERINGATAN*\n\n` +
+          `⚠️ *OPERASI PEMBERSIHAN CHAT*\n` +
           `Perintah ini akan menghapus semua riwayat chat WhatsApp!\n\n` +
           `🗑️ *Yang Akan Dihapus:*\n` +
           `• Semua riwayat chat\n` +

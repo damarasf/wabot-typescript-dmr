@@ -46,30 +46,9 @@ export function formatHelpCommand(command: any): string {
   return helpText;
 }
 
-// Format message with fancy box
+// Format message with simple header
 export function formatBox(title: string, content: string): string {
-  const lines = content.split('\n');
-  const maxLength = Math.max(title.length, ...lines.map(line => line.length));
-  
-  // Create top border
-  let box = '╭' + '━'.repeat(maxLength + 2) + '╮\n';
-  
-  // Add title
-  box += `┃ *${title}* ${' '.repeat(maxLength - title.length)}┃\n`;
-  
-  // Add separator
-  box += '┣' + '━'.repeat(maxLength + 2) + '┫\n';
-  
-  // Add content
-  for (const line of lines) {
-    const padding = ' '.repeat(maxLength - line.length);
-    box += `┃ ${line}${padding} ┃\n`;
-  }
-  
-  // Add bottom border
-  box += '╰' + '━'.repeat(maxLength + 2) + '╯';
-  
-  return box;
+  return `*${title}*\n\n${content}`;
 }
 
 // Format user information
@@ -102,13 +81,13 @@ export function formatUserInfo(user: any): string {
     month: 'long',
     year: 'numeric',
   });
-    // Create the formatted user info
+  // Create the formatted user info
   let userInfo = `📱 *Nomor:* ${user.phoneNumber}\n`;
   userInfo += `🏅 *Level:* ${levelName}\n`;
   userInfo += `📆 *Terdaftar Pada:* ${registeredDate}\n`;
     // Note: Custom limits are now per-feature basis, check usage stats for specific limits
   
-  return formatBox('Profil Pengguna', userInfo);
+  return `*📋 Profil Pengguna*\n\n${userInfo}`;
 }
 
 // Format number with thousand separator
