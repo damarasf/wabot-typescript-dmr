@@ -5,7 +5,7 @@ module.exports = {
   async up (queryInterface, Sequelize) {
     const now = new Date();
     
-    await queryInterface.bulkInsert('Users', [
+    await queryInterface.bulkInsert('users', [
       {
         phoneNumber: process.env.OWNER_NUMBER || '6281319916659',
         level: 3, // Admin level (owner is checked from config)
@@ -42,6 +42,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Users', null, {});
+    await queryInterface.bulkDelete('users', null, {});
   }
 };
