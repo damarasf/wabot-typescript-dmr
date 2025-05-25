@@ -151,7 +151,8 @@ async function generateGeneralHelpMenu(
   try {
     // Get all commands organized by category
     const categories = getCommandsByCategory();
-      // Create help message header
+    
+    // Create help message header
     let helpMessage = `${getText('help.title', userLanguage)}\n\n`;
     
     // Add user status information
@@ -163,11 +164,28 @@ async function generateGeneralHelpMenu(
     if (!isRegistered) {
       helpMessage += `${getText('help.register_notice', userLanguage)}\n\n`;
     }
+      // Sort categories in a logical order
+    const categoryOrder = ['Umum', 'Grup', 'N8N', 'Utilitas', 'Admin', 'Owner'];
+    const sortedCategories: Record<string, Command[]> = {};
+    
+    // Add categories in the defined order
+    categoryOrder.forEach(category => {
+      if (categories[category]) {
+        sortedCategories[category] = categories[category];
+      }
+    });
+    
+    // Add any remaining categories not in the predefined order
+    Object.keys(categories).forEach(category => {
+      if (!categoryOrder.includes(category)) {
+        sortedCategories[category] = categories[category];
+      }
+    });
     
     let totalCommands = 0;
-    
+      
     // Process each category
-    for (const [category, commands] of Object.entries(categories)) {
+    for (const [category, commands] of Object.entries(sortedCategories)) {
       // Filter commands based on user permissions
       const availableCommands = commands.filter(cmd => 
         checkCommandAccess(cmd, userLevel, isOwner)
@@ -179,9 +197,10 @@ async function generateGeneralHelpMenu(
       // Add category header
       helpMessage += `📂 *${category.toUpperCase()}*\n`;
       
-      // Add each command with icon
-      for (const cmd of availableCommands) {
-        const icon = getCommandIcon(cmd.category);
+      // Add each command with icon, sorted alphabetically
+      const sortedCommands = [...availableCommands].sort((a, b) => a.name.localeCompare(b.name));
+        for (const cmd of sortedCommands) {
+        const icon = getCommandIcon(category);
         helpMessage += `${icon} \`${cmd.name}\` - ${cmd.description}\n`;
         totalCommands++;
       }
@@ -256,11 +275,10 @@ function getCommandIcon(category: string): string {
     'Admin': '⚡',
     'Premium': '💎',
     'Owner': '👑',
+    'Grup': '👥',
+    'N8N': '🔄',
     'Utilitas': '🛠️',
-    'Fun': '🎮',
-    'Moderation': '🛡️',
-    'System': '⚙️',
-    'Database': '🗄️'
+    'System': '⚙️'
   };
   
   return icons[category] || '📌';

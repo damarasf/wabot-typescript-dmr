@@ -26,7 +26,7 @@ export const resetlimitCommand: Command = {
   name: 'resetlimit',
   aliases: ['rl', 'reset'],
   description: 'Reset limit penggunaan fitur untuk pengguna tertentu atau semua pengguna',
-  category: 'admin',
+  category: 'Admin',
   cooldown: 5,
   usage: 'resetlimit [all/@user/phone]',
   example: 'resetlimit all atau resetlimit @user atau resetlimit 628123456789',

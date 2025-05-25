@@ -41,6 +41,18 @@ A comprehensive TypeScript WhatsApp Bot with user management, N8N integration, a
 
 > 📖 **Need detailed setup instructions?** Check out our [Complete Setup Guide](SETUP.md) for step-by-step instructions, troubleshooting, and production deployment.
 
+## 📚 Commands
+
+The bot includes 15 commands organized into 6 categories:
+
+- **Umum** - General commands like help, register, profile, language, limit
+- **Grup** - Group commands like tagall
+- **N8N** - N8N integration commands
+- **Utilitas** - Utility commands like reminder
+- **Admin** - Admin commands like upgrade, setlimit, resetlimit
+- **Owner** - Owner commands like broadcast, setadmin, restart, clearall
+
+See the [Commands Documentation](COMMANDS.md) for a complete list of all commands, their usage, and descriptions.
 
 ## 🛠️ Development
 
