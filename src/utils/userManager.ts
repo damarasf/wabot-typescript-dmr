@@ -2,17 +2,88 @@ import { User, UserLevel, Usage, FeatureType, Language } from '../database/model
 import config from './config';
 import moment from 'moment-timezone';
 import { log } from './logger';
+import { normalizePhoneNumber, isOwner } from './phoneUtils';
 
-// Get user by phone number
+// Simple in-memory cache for frequently accessed users
+// Cache will be cleared on application restart
+const userCache = new Map<string, { user: User; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
+
+// Set up automatic cache cleanup interval
+const CLEANUP_INTERVAL = 2 * 60 * 1000; // Cleanup every 2 minutes
+const cleanupTimer = setInterval(() => {
+  clearExpiredCache();
+}, CLEANUP_INTERVAL);
+
+// Graceful cleanup on process exit
+process.on('exit', () => {
+  clearInterval(cleanupTimer);
+});
+
+process.on('SIGINT', () => {
+  clearInterval(cleanupTimer);
+});
+
+process.on('SIGTERM', () => {
+  clearInterval(cleanupTimer);
+});
+
+// Clear expired cache entries
+function clearExpiredCache(): void {
+  const now = Date.now();
+  const sizeBefore = userCache.size;
+  
+  for (const [key, value] of userCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      userCache.delete(key);
+    }
+  }
+  
+  // Only log if entries were cleaned and debug is enabled
+  if (process.env.LOG_LEVEL === 'debug' && sizeBefore > userCache.size) {
+    log.debug(`Cache cleanup: removed ${sizeBefore - userCache.size} expired entries, ${userCache.size} remaining`);
+  }
+}
+
+// Get user by phone number with caching
 export async function getUserByPhone(phone: string): Promise<User | null> {
   try {
-    // Normalize phone number (remove non-digits)
-    const normalizedPhone = phone.replace(/[^\d]/g, '');
-      return await User.findOne({ 
+    // Normalize phone number using utility function
+    const normalizedPhone = normalizePhoneNumber(phone);
+    log.debug(`getUserByPhone: ${phone} -> normalized: ${normalizedPhone}`);
+    
+    // Check cache first
+    const cached = userCache.get(normalizedPhone);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      log.debug(`getUserByPhone result: FOUND (cached) for ${normalizedPhone}`);
+      return cached.user;
+    }
+    
+    const user = await User.findOne({ 
       where: { phoneNumber: normalizedPhone } 
     });
+    
+    // Cache the result if user found
+    if (user) {
+      userCache.set(normalizedPhone, {
+        user,
+        timestamp: Date.now()
+      });
+      
+      // Periodically clear expired cache entries
+      if (userCache.size > 100) { // Clear when cache gets large
+        clearExpiredCache();
+      }
+    }
+    
+    log.debug(`getUserByPhone result: ${user ? 'FOUND' : 'NOT FOUND'} for ${normalizedPhone}`);
+    return user;
   } catch (error) {
-    log.error('Error getting user by phone', error);
+    log.error('Error getting user by phone', {
+      phone,
+      normalizedPhone: normalizePhoneNumber(phone),
+      error: error instanceof Error ? error.message : String(error)
+    });
     return null;
   }
 }
@@ -20,11 +91,25 @@ export async function getUserByPhone(phone: string): Promise<User | null> {
 // Create new user
 export async function createUser(phone: string): Promise<User> {
   try {
-    // Normalize phone number (remove non-digits)
-    const normalizedPhone = phone.replace(/[^\d]/g, '');
+    log.debug(`Creating user with phone: ${phone}`);
+    
+    // Normalize phone number using utility function
+    const normalizedPhone = normalizePhoneNumber(phone);
+    log.debug(`Normalized phone: ${normalizedPhone}`);
+    
+    // Double-check if user already exists to prevent duplicates
+    const existingUser = await User.findOne({ 
+      where: { phoneNumber: normalizedPhone } 
+    });
+    
+    if (existingUser) {
+      log.warn(`User already exists with phone: ${normalizedPhone}, returning existing user`);
+      return existingUser;
+    }
     
     // Determine user level - Owner gets Admin level, others get Free
-    const userLevel = normalizedPhone === config.ownerNumber ? UserLevel.ADMIN : UserLevel.FREE;
+    const userLevel = isOwner(phone, config.ownerNumber) ? UserLevel.ADMIN : UserLevel.FREE;
+    log.debug(`Determined user level: ${UserLevel[userLevel]} (isOwner: ${isOwner(phone, config.ownerNumber)})`);
     
     const user = await User.create({
       phoneNumber: normalizedPhone,
@@ -37,15 +122,31 @@ export async function createUser(phone: string): Promise<User> {
     log.user(`User created: ${normalizedPhone} with level ${UserLevel[userLevel]}`);
     return user;
   } catch (error) {
-    log.error('Error creating user', error);
+    log.error('Error creating user', {
+      phone,
+      normalizedPhone: normalizePhoneNumber(phone),
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     throw error;
   }
 }
 
+// Invalidate user cache - call this when user data changes
+function invalidateUserCache(phoneNumber: string): void {
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  userCache.delete(normalizedPhone);
+}
+
 // Update user's last active time
 export async function updateUserActivity(user: User): Promise<void> {
-  try {    user.lastActivity = new Date();
+  try {
+    user.lastActivity = new Date();
     await user.save();
+    
+    // Invalidate cache to ensure fresh data
+    invalidateUserCache(user.phoneNumber);
+    
     // Remove logging for performance - this happens very frequently
   } catch (error) {
     log.error('Error updating user activity', error);
@@ -135,9 +236,18 @@ export async function checkLimit(user: User, feature: FeatureType): Promise<{ ha
 
 // Reset usage for all users
 export async function resetAllUsage(): Promise<void> {
-  try {    const result = await Usage.update(
-      { count: 0, lastReset: new Date() },
-      { where: {} }
+  try {
+    // Use bulk update for better performance
+    const result = await Usage.update(
+      { 
+        count: 0, 
+        lastReset: new Date() 
+      },
+      { 
+        where: {},
+        // Add transaction support for data consistency
+        // logging: false // Disable query logging for bulk operations
+      }
     );
     
     log.success(`Reset usage for all users: ${result[0]} records updated`);
@@ -149,9 +259,17 @@ export async function resetAllUsage(): Promise<void> {
 
 // Reset usage for a specific user
 export async function resetUserUsage(userId: number): Promise<void> {
-  try {    const result = await Usage.update(
-      { count: 0, lastReset: new Date() },
-      { where: { userId } }
+  try {
+    // Use bulk update for better performance
+    const result = await Usage.update(
+      { 
+        count: 0, 
+        lastReset: new Date() 
+      },
+      { 
+        where: { userId },
+        // logging: false // Disable query logging for bulk operations
+      }
     );
     
     log.success(`Reset usage for user ${userId}: ${result[0]} records updated`);
@@ -181,7 +299,8 @@ export async function setCustomLimit(userId: number, feature: FeatureType, limit
 
 // Set user level
 export async function setUserLevel(userId: number, level: UserLevel): Promise<User | null> {
-  try {    const user = await User.findByPk(userId);
+  try {
+    const user = await User.findByPk(userId);
     if (!user) {
       log.warn(`User with ID ${userId} not found`);
       return null;
@@ -191,12 +310,20 @@ export async function setUserLevel(userId: number, level: UserLevel): Promise<Us
     user.level = level;
     await user.save();
     
+    // Invalidate cache to ensure fresh data
+    invalidateUserCache(user.phoneNumber);
+    
     log.user(`User level updated for ${userId}: ${UserLevel[oldLevel]} → ${UserLevel[level]}`);
     return user;
   } catch (error) {
     log.error('Error setting user level', error);
     return null;
   }
+}
+
+// Export cache invalidation function for external use
+export function invalidateCache(phoneNumber: string): void {
+  invalidateUserCache(phoneNumber);
 }
 
 export default {

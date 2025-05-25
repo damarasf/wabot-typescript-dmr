@@ -34,13 +34,27 @@ export async function handleMessage(client: Client, message: Message): Promise<v
     }
     
     // Execute the command
-    await command.execute(message, args, client, user);
-  } catch (error) {
+    await command.execute(message, args, client, user);  } catch (error) {
     log.error('Error handling message', error);
-      try {
+    
+    // Send user-friendly error message based on error type
+    try {
+      let errorMessage = '❌ Terjadi kesalahan saat memproses perintah. Silakan coba lagi nanti.';
+      
+      // Provide more specific error messages if possible
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          errorMessage = '⏱️ Permintaan timeout. Silakan coba lagi dalam beberapa saat.';
+        } else if (error.message.includes('database') || error.message.includes('connection')) {
+          errorMessage = '🔌 Koneksi database bermasalah. Silakan coba lagi nanti.';
+        } else if (error.message.includes('permission') || error.message.includes('access')) {
+          errorMessage = '🚫 Akses ditolak. Pastikan Anda memiliki izin untuk menggunakan perintah ini.';
+        }
+      }
+      
       await client.reply(
         message.chatId, 
-        '❌ Terjadi kesalahan saat memproses perintah. Silakan coba lagi nanti.', 
+        errorMessage, 
         message.id
       );
     } catch (replyError) {

@@ -16,12 +16,12 @@ const sequelize = new Sequelize({
       require: true,
       rejectUnauthorized: false
     } : false
-  },
-  pool: {
-    max: 10,
-    min: 0,
+  },  pool: {
+    max: process.env.NODE_ENV === 'production' ? 20 : 10,
+    min: process.env.NODE_ENV === 'production' ? 2 : 0,
     acquire: 30000,
-    idle: 10000
+    idle: 10000,
+    evict: 1000 // Check for idle connections every second
   },
   timezone: '+07:00' // Asia/Jakarta
 });

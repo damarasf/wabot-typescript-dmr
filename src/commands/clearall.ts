@@ -3,6 +3,7 @@ import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { isOwner } from '../utils/phoneUtils';
 
 /**
  * Clear All Command
@@ -28,22 +29,18 @@ export const clearallCommand: Command = {
    * @param user - Owner user database object
    */  
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {
-      logger.command('Processing clearall command from owner', {
+    try {      logger.command('Processing clearall command from owner', {
         userId: message.sender.id,
         command: 'clearall',
         args: args.length
       });
 
-      const ownerNumber = config.ownerNumberFormatted;
-      const isOwner = String(message.sender.id) === ownerNumber;
-      
       // Additional owner verification (safety check)
-      if (isOwner) {
+      if (!isOwner(message.sender.id, config.ownerNumber)) {
         logger.security('Unauthorized clearall attempt', {
           userId: message.sender.id,
           command: 'clearall',
-          ownerNumber: ownerNumber
+          ownerNumber: config.ownerNumber
         });
         await client.reply(
           message.chatId,

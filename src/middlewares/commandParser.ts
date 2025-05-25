@@ -2,6 +2,7 @@ import { Message, Client } from '@open-wa/wa-automate';
 import { User, UserLevel } from '../database/models';
 import config from '../utils/config';
 import * as userManager from '../utils/userManager';
+import { isOwner, normalizePhoneNumber } from '../utils/phoneUtils';
 
 // Command interface
 export interface Command {
@@ -45,11 +46,10 @@ export async function parseCommand(message: Message): Promise<CommandWithContext
   
   // Find command in commands collection
   const command = findCommand(commandName);
-  if (!command) return null;
-  
-  // Get user from database if not owner
+  if (!command) return null;  // Get user from database if not owner
   let user: User | undefined;
-  if (message.sender.id !== config.ownerNumber) {
+  if (!isOwner(message.sender.id, config.ownerNumber)) {
+    // Normalize phone number before database lookup
     const existingUser = await userManager.getUserByPhone(message.sender.id);
     
     // Check if command requires registration
@@ -95,19 +95,18 @@ async function validateCommandUsage(
   command: Command,
   message: Message,
   user?: User
-): Promise<{ valid: boolean; reason?: string }> {
-  // Check if command is owner-only
-  if (command.ownerOnly && message.sender.id !== config.ownerNumber) {
+): Promise<{ valid: boolean; reason?: string }> {  // Check if command is owner-only
+  if (command.ownerOnly && !isOwner(message.sender.id, config.ownerNumber)) {
     return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh owner bot.' };
   }
   
   // Check if command is admin-only
-  if (command.adminOnly && (!user || user.level < UserLevel.ADMIN) && message.sender.id !== config.ownerNumber) {
+  if (command.adminOnly && (!user || user.level < UserLevel.ADMIN) && !isOwner(message.sender.id, config.ownerNumber)) {
     return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh admin bot.' };
   }
   
   // Check minimum user level
-  if (command.minimumLevel && (!user || user.level < command.minimumLevel) && message.sender.id !== config.ownerNumber) {
+  if (command.minimumLevel && (!user || user.level < command.minimumLevel) && !isOwner(message.sender.id, config.ownerNumber)) {
     return { valid: false, reason: `Perintah ini memerlukan level minimal ${UserLevel[command.minimumLevel]}.` };
   }
   

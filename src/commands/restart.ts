@@ -3,6 +3,7 @@ import { Command } from '../middlewares/commandParser';
 import { User } from '../database/models';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { getDisplayPhoneNumber } from '../utils/phoneUtils';
 
 /**
  * Restart Command
@@ -92,7 +93,7 @@ export const restartCommand: Command = {
       );      // Prepare detailed owner notification
       const ownerNotification = `*🤖 Bot Restart Notification*\n\n` +
         `🔄 *BOT RESTART INITIATED*\n\n` +
-        `👑 *Dipicu oleh:* Owner (${message.sender.id.replace('@c.us', '')})\n` +
+        `👑 *Dipicu oleh:* Owner (${getDisplayPhoneNumber(message.sender.id)})\n` +
         `📍 *Lokasi:* ${isFromGroup ? 'Group Chat' : 'Private Chat'}\n` +
         `⏰ *Waktu:* ${currentTime}\n\n` +
         `📊 *System Info:*\n` +

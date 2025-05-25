@@ -6,6 +6,7 @@ import { formatNumber } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { isOwner } from '../utils/phoneUtils';
 
 /**
  * Limit Command
@@ -46,16 +47,14 @@ const limit: Command = {
           message.id
         );
         return;
-      }
-
-      // Check if user is owner (special case)
-      const isOwner = String(message.sender.id) === config.ownerNumber;
+      }      // Check if user is owner (special case)
+      const isOwnerFlag = isOwner(message.sender.id, config.ownerNumber);
       const isAdmin = user.level >= UserLevel.ADMIN;
       
       logger.info('Fetching usage data for user', {
         userId: user.id,
         userLevel: UserLevel[user.level],
-        isOwner,
+        isOwner: isOwnerFlag,
         isAdmin
       });
 
@@ -74,8 +73,7 @@ const limit: Command = {
       // Generate user information header
       let userInfo = `👤 *Pengguna:* ${user.phoneNumber}\n`;
       userInfo += `🏆 *Level:* ${UserLevel[user.level]}`;
-      
-      if (isOwner) {
+        if (isOwnerFlag) {
         userInfo += ' (Owner)';
       } else if (isAdmin) {
         userInfo += ' (Unlimited)';
@@ -101,11 +99,10 @@ const limit: Command = {
         let maxLimit: number;
         let limitType: string;
         let progressBar = '';
-        
-        // Determine limit based on user level and custom settings
-        if (isOwner || isAdmin) {
+          // Determine limit based on user level and custom settings
+        if (isOwnerFlag || isAdmin) {
           maxLimit = Infinity;
-          limitType = isOwner ? 'Owner' : 'Admin';
+          limitType = isOwnerFlag ? 'Owner' : 'Admin';
           progressBar = '∞';
         } else if (usage?.customLimit !== null && usage?.customLimit !== undefined) {
           maxLimit = usage.customLimit;
@@ -144,9 +141,8 @@ const limit: Command = {
       const hoursUntilReset = Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60));
       
       limitText += `⏱️ *Reset Otomatis:* ${hoursUntilReset}h lagi (00:00 WIB)\n`;
-      
-      // Add upgrade information for non-premium users
-      if (user.level < UserLevel.PREMIUM && !isOwner) {
+        // Add upgrade information for non-premium users
+      if (user.level < UserLevel.PREMIUM && !isOwnerFlag) {
         limitText += '\n💎 *Ingin limit lebih tinggi?*\n';
         limitText += 'Hubungi admin untuk upgrade ke Premium!';
       }

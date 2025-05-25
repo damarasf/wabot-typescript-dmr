@@ -4,6 +4,7 @@ import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { isOwner, getDisplayPhoneNumber } from '../utils/phoneUtils';
 
 /**
  * Upgrade Command
@@ -33,12 +34,11 @@ const upgrade: Command = {
         args,
         chatId: message.chatId
       });
-      
-      // Validate admin permissions (redundant check for safety)
-      const isOwner = String(message.sender.id) === config.ownerNumber;
+        // Validate admin permissions (redundant check for safety)
+      const isOwnerUser = isOwner(message.sender.id, config.ownerNumber);
       const isAdmin = user && user.level >= UserLevel.ADMIN;
-        if (!isOwner && !isAdmin) {
-        logger.user(`Unauthorized upgrade attempt by ${message.sender.id}`);
+        if (!isOwnerUser && !isAdmin) {
+        logger.user(`Unauthorized upgrade attempt by ${getDisplayPhoneNumber(message.sender.id)}`);
         await client.reply(
           message.chatId,
           '❌ Anda tidak memiliki izin untuk menggunakan perintah ini.\n\n' +
@@ -105,28 +105,25 @@ const upgrade: Command = {
         );
         return;
       }
-      
-      // Prevent self-upgrade (if not owner)
-      if (!isOwner && targetUser.phoneNumber === message.sender.id) {
+        // Prevent self-upgrade (if not owner)
+      if (!isOwnerUser && targetUser.phoneNumber === getDisplayPhoneNumber(message.sender.id)) {
         await client.reply(
           message.chatId,
           '❌ Anda tidak dapat mengupgrade level diri sendiri.',
           message.id
         );
         return;      }
-      
-      logger.user(`Upgrading user ${targetUser.phoneNumber} to Premium`, {
-        requestedBy: message.sender.id,
+        logger.user(`Upgrading user ${targetUser.phoneNumber} to Premium`, {
+        requestedBy: getDisplayPhoneNumber(message.sender.id),
         targetLevel: 'Premium'
       });
       
       // Upgrade user to premium
       const updatedUser = await userManager.setUserLevel(targetUser.id, UserLevel.PREMIUM);
       
-      if (!updatedUser) {
-        logger.error(`Failed to upgrade user ${targetUser.phoneNumber}`, {
+      if (!updatedUser) {        logger.error(`Failed to upgrade user ${targetUser.phoneNumber}`, {
           targetPhone: targetUser.phoneNumber,
-          requestedBy: message.sender.id
+          requestedBy: getDisplayPhoneNumber(message.sender.id)
         });
         await client.reply(
           message.chatId,
@@ -142,26 +139,24 @@ const upgrade: Command = {
       let targetName = 'Pengguna';
       
       try {
-        adminName = message.sender.pushname || `${message.sender.id.replace('@c.us', '')}`;        if (mentionedUsers.length > 0) {
+        adminName = message.sender.pushname || getDisplayPhoneNumber(message.sender.id);        if (mentionedUsers.length > 0) {
           // Try to get contact info for mentioned user
           const contactInfo = await client.getContact(targetPhoneNumber as ContactId);
-          targetName = contactInfo.pushname || contactInfo.shortName || targetPhoneNumber.replace('@c.us', '');        }
+          targetName = contactInfo.pushname || contactInfo.shortName || getDisplayPhoneNumber(targetPhoneNumber);        }
       } catch (nameError) {
         logger.debug('Could not fetch display names, using fallbacks');
       }
-      
-      logger.success(`Successfully upgraded user ${targetUser.phoneNumber} to Premium`, {
+        logger.success(`Successfully upgraded user ${targetUser.phoneNumber} to Premium`, {
         targetPhone: targetUser.phoneNumber,
-        requestedBy: message.sender.id
+        requestedBy: getDisplayPhoneNumber(message.sender.id)
       });
-      
-      // Send success message to current chat
+        // Send success message to current chat
       const successMessage = mentionedUsers.length > 0 ?
-        `✅ Berhasil mengupgrade @${targetPhoneNumber.replace('@c.us', '')} ke level Premium!\n\n` +
+        `✅ Berhasil mengupgrade @${getDisplayPhoneNumber(targetPhoneNumber)} ke level Premium!\n\n` +
         `👤 *Target:* ${targetName}\n` +
         `👑 *Diupgrade oleh:* ${adminName}\n` +
         `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}` :
-        `✅ Berhasil mengupgrade pengguna ${targetPhoneNumber.replace('@c.us', '')} ke level Premium!\n\n` +
+        `✅ Berhasil mengupgrade pengguna ${getDisplayPhoneNumber(targetPhoneNumber)} ke level Premium!\n\n` +
         `👑 *Diupgrade oleh:* ${adminName}\n` +
         `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
       

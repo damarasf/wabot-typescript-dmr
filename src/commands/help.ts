@@ -6,6 +6,7 @@ import { formatHelpCommand } from '../utils/formatter';
 import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { isOwner } from '../utils/phoneUtils';
 
 /**
  * Help Command
@@ -30,21 +31,20 @@ const help: Command = {
    */  
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
-      
-      // Get user information for permission filtering
+        // Get user information for permission filtering
       const userLevel = user ? user.level : UserLevel.UNREGISTERED;
-      const isOwner = String(message.sender.id) === config.ownerNumber;
+      const isOwnerFlag = isOwner(message.sender.id, config.ownerNumber);
       const isRegistered = user !== undefined;
       const userLanguage = user?.language || Language.INDONESIAN;
       
       // Handle specific command help request
       if (args.length > 0) {
-        await handleSpecificCommandHelp(message, args[0], client, userLevel, isOwner, userLanguage);
+        await handleSpecificCommandHelp(message, args[0], client, userLevel, isOwnerFlag, userLanguage);
         return;
       }
       
       // Generate general help menu
-      await generateGeneralHelpMenu(message, client, userLevel, isOwner, isRegistered, userLanguage);
+      await generateGeneralHelpMenu(message, client, userLevel, isOwnerFlag, isRegistered, userLanguage);
     } catch (error) {
       logger.error('Error in help command:', { 
         error: error instanceof Error ? error.message : error,
