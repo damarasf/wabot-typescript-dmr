@@ -1,10 +1,11 @@
 import { Message, Client, ContactId } from '@open-wa/wa-automate';
-import { User, UserLevel } from '../database/models';
+import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
 import logger from '../utils/logger';
 import { normalizePhoneNumber, formatForWhatsApp, getDisplayPhoneNumber, isOwner } from '../utils/phoneUtils';
+import { getText } from '../utils/i18n';
 
 /**
  * Set Admin Command
@@ -21,28 +22,27 @@ const setadmin: Command = {
   cooldown: 5,
   requiredArgs: 1,
   ownerOnly: true,
-  
-  /**
+    /**
    * Execute the setadmin command
    * @param message - WhatsApp message object
    * @param args - Command arguments [phone_number or mention]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+   */
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    const language = user?.language || Language.INDONESIAN;
+    
     try {
       logger.command(`setadmin from owner ${message.sender.id}`, {
         userId: message.sender.id,
         args,
         chatId: message.chatId
-      });
-        // Additional owner verification (safety check)
+      });      // Additional owner verification (safety check)
       if (!isOwner(message.sender.id, config.ownerNumber)) {
         logger.security(`Unauthorized setadmin attempt by ${getDisplayPhoneNumber(message.sender.id)}`);
         await client.reply(
           message.chatId,
-          '🚫 *Akses Ditolak*\n\n' +
-          'Perintah ini hanya dapat digunakan oleh owner bot.\n\n' +
-          '_Hubungi administrator jika Anda merasa ini adalah kesalahan._',
+          getText('setadmin.access_denied', language),
           message.id
         );
         return;
@@ -70,58 +70,43 @@ const setadmin: Command = {
           userId: message.sender.id
         });
       }
-      
-      // Validate target user provided
+        // Validate target user provided
       if (!targetUserId) {
         logger.debug('No target user specified for setadmin');
         await client.reply(
           message.chatId,
-          '❌ *Target Tidak Valid*\n\n' +
-          'Cara penggunaan:\n' +
-          '• `!setadmin @user` - mention pengguna\n' +
-          '• `!setadmin 628123456789` - nomor HP\n\n' +
-          '*Contoh:* `!setadmin @user`',
+          getText('setadmin.invalid_target', language),
           message.id
         );
         return;
-      }      // Normalize target user ID for database lookup using utility function
+      }// Normalize target user ID for database lookup using utility function
       const normalizedPhone = getDisplayPhoneNumber(targetUserId);
-      
-      // Prevent self-promotion (though owner should already have admin privileges)
+        // Prevent self-promotion (though owner should already have admin privileges)
       if (isOwner(targetUserId, config.ownerNumber)) {
         await client.reply(
           message.chatId,
-          '⚠️ *Aksi Tidak Diperlukan*\n\n' +
-          'Anda adalah owner bot dan sudah memiliki semua privileges.\n\n' +
-          '_Owner tidak perlu di-set sebagai admin._',
+          getText('setadmin.owner_already_admin', language),
           message.id
         );
         return;
       }
 
       // Check if target user exists in database
-      const targetUser = await userManager.getUserByPhone(normalizedPhone);
-        if (!targetUser) {
+      const targetUser = await userManager.getUserByPhone(normalizedPhone);      if (!targetUser) {
         logger.user(`Target user ${normalizedPhone} not found in database`, {
           targetPhone: normalizedPhone,
           userId: message.sender.id
         });
         await client.reply(
           message.chatId,
-          '❌ *Pengguna Tidak Ditemukan*\n\n' +
-          'Pengguna belum terdaftar dalam sistem bot.\n\n' +
-          '*Solusi:*\n' +
-          '• Minta pengguna untuk registrasi dengan `!register`\n' +
-          '• Pastikan nomor HP benar\n' +
-          '• Gunakan mention untuk akurasi tinggi',
+          getText('setadmin.user_not_found', language),
           message.id
         );
         return;
       }
 
       // Check current user level
-      const currentLevelName = UserLevel[targetUser.level] || 'Unknown';
-        if (targetUser.level >= UserLevel.ADMIN) {
+      const currentLevelName = UserLevel[targetUser.level] || 'Unknown';      if (targetUser.level >= UserLevel.ADMIN) {
         logger.user(`User ${normalizedPhone} already has Admin level or higher`, {
           targetPhone: normalizedPhone,
           currentLevel: currentLevelName,
@@ -139,14 +124,15 @@ const setadmin: Command = {
         
         await client.reply(
           message.chatId,
-          `⚠️ *Sudah Admin*\n\n` +
-          `👤 *Pengguna:* ${userName}\n` +
-          `📱 *Phone:* ${targetUser.phoneNumber}\n` +
-          `🏆 *Level Saat Ini:* ${currentLevelName}\n\n` +
-          '_Pengguna ini sudah memiliki level Admin atau lebih tinggi._',
+          getText('setadmin.already_admin', language, undefined, {
+            userName,
+            phoneNumber: targetUser.phoneNumber,
+            currentLevel: currentLevelName
+          }),
           message.id
         );
-        return;      }
+        return;
+      }
 
       logger.user(`Promoting user ${normalizedPhone} from ${currentLevelName} to Admin`, {
         targetPhone: normalizedPhone,
@@ -157,8 +143,7 @@ const setadmin: Command = {
       
       // Set user as admin
       const updatedUser = await userManager.setUserLevel(targetUser.id, UserLevel.ADMIN);
-      
-      if (!updatedUser) {
+        if (!updatedUser) {
         logger.error(`Failed to update user level for ${normalizedPhone}`, {
           targetPhone: normalizedPhone,
           targetLevel: 'Admin',
@@ -166,9 +151,7 @@ const setadmin: Command = {
         });
         await client.reply(
           message.chatId,
-          '❌ *Gagal Mengatur Admin*\n\n' +
-          'Terjadi kesalahan saat memperbarui level pengguna.\n\n' +
-          '_Silakan coba lagi atau periksa log untuk detail error._',
+          getText('setadmin.update_failed', language),
           message.id
         );
         return;
@@ -188,41 +171,27 @@ const setadmin: Command = {
         fromLevel: currentLevelName,
         toLevel: 'Admin',
         userId: message.sender.id
+      });      // Send success message with comprehensive information
+      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+      const successMessage = getText('setadmin.success', language, undefined, {
+        userName,
+        phoneNumber: targetUser.phoneNumber,
+        previousLevel: currentLevelName,
+        currentTime
       });
-
-      // Send success message with comprehensive information
-      const successMessage = `✅ *Admin Berhasil Ditetapkan*\n\n` +
-        `👤 *Pengguna:* ${userName}\n` +
-        `📱 *Phone:* ${targetUser.phoneNumber}\n` +
-        `🏆 *Level Baru:* Admin\n` +
-        `🏆 *Level Sebelumnya:* ${currentLevelName}\n` +
-        `⏰ *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}\n\n` +
-        `🎯 *Privileges Baru:*\n` +
-        `• Akses semua fitur bot\n` +
-        `• Tanpa limit penggunaan\n` +
-        `• Akses perintah admin\n` +
-        `• Dapat menggunakan tagall\n\n` +
-        `_Notifikasi telah dikirim ke pengguna._`;
 
       if (displayMethod === 'mention') {
         await client.sendTextWithMentions(message.chatId, successMessage);
       } else {
         await client.reply(message.chatId, successMessage, message.id);
-      }
-
-      // Send notification to the newly promoted admin
+      }      // Send notification to the newly promoted admin
       setTimeout(async () => {
         try {
-          const adminNotification = `🎉 *Selamat! Anda Diangkat Menjadi Admin*\n\n` +
-            `👑 *${config.botName}* telah mengangkat Anda sebagai Admin!\n\n` +
-            `🎯 *Privileges Baru:*\n` +
-            `• Akses semua fitur tanpa limit\n` +
-            `• Dapat menggunakan perintah admin\n` +
-            `• Dapat menggunakan tagall di grup\n` +
-            `• Prioritas dukungan teknis\n\n` +
-            `📚 *Gunakan:* \`!help\` untuk melihat perintah admin\n\n` +
-            `_Gunakan privilege ini dengan bijak dan sesuai aturan._`;
-            await client.sendText(targetUserId as any, adminNotification);
+          const adminNotification = getText('setadmin.user_notification', language, undefined, {
+            botName: config.botName
+          });
+          
+          await client.sendText(targetUserId as any, adminNotification);
           logger.info(`Admin notification sent to ${normalizedPhone}`, {
             targetPhone: normalizedPhone,
             userId: message.sender.id
@@ -242,17 +211,17 @@ const setadmin: Command = {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
       });
-      
-      // Enhanced error handling
-      let errorMessage = 'Terjadi kesalahan saat mengatur admin.';
+        // Enhanced error handling
+      let errorMessage = getText('setadmin.general_error', language);
       
       if (error instanceof Error) {
         if (error.message.includes('database')) {
-          errorMessage = 'Kesalahan database saat memperbarui level pengguna.';
+          errorMessage = getText('setadmin.database_error', language);
         } else if (error.message.includes('permission')) {
-          errorMessage = 'Tidak memiliki izin untuk melakukan operasi ini.';
+          errorMessage = getText('setadmin.permission_error', language);
         } else if (error.message.includes('user')) {
-          errorMessage = 'Pengguna tidak ditemukan atau tidak valid.';        }
+          errorMessage = getText('setadmin.user_error', language);
+        }
         logger.debug('SetAdmin error details', {
           message: error.message,
           userId: message.sender.id
@@ -262,7 +231,7 @@ const setadmin: Command = {
       try {
         await client.reply(
           message.chatId,
-          `❌ ${errorMessage}\n\n_Silakan coba lagi atau hubungi support jika masalah berlanjut._`,
+          errorMessage,
           message.id
         );
       } catch (replyError) {

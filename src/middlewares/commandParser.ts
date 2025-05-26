@@ -1,9 +1,10 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { User, UserLevel } from '../database/models';
+import { User, UserLevel, Language } from '../database/models';
 import config from '../utils/config';
 import * as userManager from '../utils/userManager';
 import { isOwner, normalizePhoneNumber } from '../utils/phoneUtils';
 import { formatHelpCommand } from '../utils/formatter';
+import { getText } from '../utils/i18n';
 
 // Command interface
 export interface Command {
@@ -37,25 +38,29 @@ export async function checkAndSendUsageHint(message: Message, client: Client): P
   // Get prefix from message
   const prefix = getPrefix(message.body);
   if (!prefix) return false;
-  
+
   // Split message by spaces
   const args = message.body.slice(prefix.length).trim().split(/\s+/);
-  
+
   // Get command name
   const commandName = args.shift()?.toLowerCase();
   if (!commandName) return false;
-  
+
   // Find command in commands collection
   const command = findCommand(commandName);
   if (!command) return false;
-  
+
   // Check if command requires more than 1 argument and user provided insufficient args
   if (command.requiredArgs && command.requiredArgs > 1 && args.length < command.requiredArgs) {
     try {
+      // Get user for language preference
+      const user = await userManager.getUserByPhone(message.sender.id);
+      const userLanguage = user?.language || Language.INDONESIAN;
+      
       // Send usage hint with formatted command help
-      const usageHint = `⚠️ *Penggunaan Perintah Tidak Lengkap*\n\n` +
-        `${formatHelpCommand(command)}\n\n` +
-        `💡 *Tips:* Anda perlu melengkapi semua parameter yang diperlukan untuk perintah ini.`;
+      const usageHint = getText('validation.usage_hint', userLanguage, undefined, {
+        commandHelp: formatHelpCommand(command)
+      });
       
       await client.reply(message.chatId, usageHint, message.id);
       return true; // Indicates that usage hint was sent
@@ -63,7 +68,7 @@ export async function checkAndSendUsageHint(message: Message, client: Client): P
       console.error('Error sending usage hint:', error);
     }
   }
-  
+
   return false; // No usage hint needed or sent
 }
 
@@ -136,58 +141,81 @@ async function validateCommandUsage(
   user?: User
 ): Promise<{ valid: boolean; reason?: string }> {
   const userIsOwner = isOwner(message.sender.id, config.ownerNumber);
-  
+  const userLanguage = user?.language || Language.INDONESIAN;
+
   // Check if command is owner-only
   if (command.ownerOnly && !userIsOwner) {
-    return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh owner bot.' };
+    return { 
+      valid: false, 
+      reason: getText('validation.owner_only', userLanguage) 
+    };
   }
-  
+
   // Check if command is admin-only
   if (command.adminOnly && (!user || user.level < UserLevel.ADMIN) && !userIsOwner) {
-    return { valid: false, reason: 'Perintah ini hanya dapat digunakan oleh admin bot.' };
+    return { 
+      valid: false, 
+      reason: getText('validation.admin_only', userLanguage) 
+    };
   }
-  
+
   // Check minimum user level
   if (command.minimumLevel && (!user || user.level < command.minimumLevel) && !userIsOwner) {
-    return { valid: false, reason: `Perintah ini memerlukan level minimal ${UserLevel[command.minimumLevel]}.` };
+    return { 
+      valid: false, 
+      reason: getText('validation.minimum_level', userLanguage, undefined, {
+        level: UserLevel[command.minimumLevel]
+      })
+    };
   }
-  
+
   // Check if command is group-only
   if (command.groupOnly && !message.isGroupMsg) {
-    return { valid: false, reason: 'Perintah ini hanya dapat digunakan di dalam grup.' };
+    return { 
+      valid: false, 
+      reason: getText('validation.group_only', userLanguage) 
+    };
   }
-  
+
   // Check if command has required number of arguments
   if (command.requiredArgs && command.requiredArgs > 0 && message.body.trim().split(/\s+/).length - 1 < command.requiredArgs) {
-    return { valid: false, reason: `Argumen tidak cukup. Penggunaan: ${command.usage}` };
+    return { 
+      valid: false, 
+      reason: getText('validation.insufficient_args', userLanguage, undefined, {
+        usage: command.usage
+      })
+    };
   }
-  
+
   // Check cooldown
   if (command.cooldown) {
     if (!cooldowns.has(command.name)) {
       cooldowns.set(command.name, new Map());
     }
-    
+
     const timestamps = cooldowns.get(command.name)!;
     const cooldownAmount = command.cooldown * 1000;
     const now = Date.now();
-    
+
     if (timestamps.has(message.sender.id)) {
       const expirationTime = timestamps.get(message.sender.id)! + cooldownAmount;
-      
+
       if (now < expirationTime) {
         const timeLeft = (expirationTime - now) / 1000;
         return {
           valid: false,
-          reason: `Mohon tunggu ${timeLeft.toFixed(1)} detik sebelum menggunakan perintah \`${command.name}\` lagi.`
+          reason: getText('validation.cooldown', userLanguage, undefined, {
+            timeLeft: timeLeft.toFixed(1),
+            commandName: command.name
+          })
         };
       }
     }
-    
+
     timestamps.set(message.sender.id, now);
     setTimeout(() => timestamps.delete(message.sender.id), cooldownAmount);
   }
-  
+
   return { valid: true };
 }
 

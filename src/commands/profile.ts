@@ -95,9 +95,8 @@ const profile: Command = {
           error: nameError instanceof Error ? nameError.message : String(nameError)
         });
       }
-      
-      // Format comprehensive user information
-      const userInfo = formatUserInfo(profileUser!);
+        // Format comprehensive user information
+      const userInfo = formatUserInfo(profileUser!, profileUser!.language);
       
       // Add current session information
       const isOwner = profileUser!.phoneNumber === config.ownerNumber;

@@ -1,9 +1,10 @@
 import { Client, Message } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
-import { User } from '../database/models';
+import { User, Language } from '../database/models';
 import config from '../utils/config';
 import logger from '../utils/logger';
 import { isOwner } from '../utils/phoneUtils';
+import { getText } from '../utils/i18n';
 
 /**
  * Clear All Command
@@ -27,9 +28,11 @@ export const clearallCommand: Command = {
    * @param args - Command arguments [CONFIRM]
    * @param client - WhatsApp client instance
    * @param user - Owner user database object
-   */  
-  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {      logger.command('Processing clearall command from owner', {
+   */    async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    const language = user?.language || Language.INDONESIAN;
+    
+    try {      
+      logger.command('Processing clearall command from owner', {
         userId: message.sender.id,
         command: 'clearall',
         args: args.length
@@ -44,9 +47,7 @@ export const clearallCommand: Command = {
         });
         await client.reply(
           message.chatId,
-          '🚫 *Akses Ditolak*\n\n' +
-          'Perintah ini hanya dapat digunakan oleh owner bot.\n\n' +
-          '_Ini adalah operasi untuk membersihkan riwayat chat._',
+          getText('clearall.access_denied', language),
           message.id
         );
         return;
@@ -59,24 +60,10 @@ export const clearallCommand: Command = {
           argsProvided: args.length,
           firstArg: args[0] || 'none'
         });
-          const warningMessage = `🚨 *PERINGATAN*\n\n` +
-          `⚠️ *OPERASI PEMBERSIHAN CHAT*\n` +
-          `Perintah ini akan menghapus semua riwayat chat WhatsApp!\n\n` +
-          `🗑️ *Yang Akan Dihapus:*\n` +
-          `• Semua riwayat chat\n` +
-          `• Semua media (foto, video, dokumen)\n` +
-          `• Pesan yang tersimpan di memori\n\n` +
-          `✅ *Yang TIDAK Dihapus:*\n` +
-          `• Data pengguna di database\n` +
-          `• Konfigurasi bot\n` +
-          `• Session WhatsApp\n\n` +
-          `⚡ *Untuk melanjutkan, ketik:*\n` +
-          `\`!clearall CONFIRM\`\n\n` +
-          `_Tujuan: Mengosongkan memory dan mempercepat bot._`;
 
         await client.reply(
           message.chatId,
-          warningMessage,
+          getText('clearall.help', language),
           message.id
         );
         return;
@@ -88,18 +75,11 @@ export const clearallCommand: Command = {
       });
 
       // Send initial warning with countdown
-      const initialWarning = `🚨 *PROSES PEMBERSIHAN DIMULAI*\n\n` +
-        `⚠️ Menghapus riwayat chat dalam 3 detik...\n` +
-        `🔄 Proses ini akan membersihkan memory bot.\n\n` +
-        `_Tunggu hingga selesai..._`;
-      
       await client.reply(
         message.chatId,
-        initialWarning,
+        getText('clearall.starting', language),
         message.id
-      );
-
-      // 3 second delay for preparation
+      );      // 3 second delay for preparation
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       logger.info('Starting chat clearing process', {
@@ -109,14 +89,15 @@ export const clearallCommand: Command = {
       // Send progress message
       await client.reply(
         message.chatId,
-        '🔄 *Membersihkan riwayat chat...*\n\n_Harap tunggu, jangan matikan bot._',
+        getText('clearall.processing', language),
         message.id
       );
 
       let clearedCount = 0;
       let methodUsed = 'Unknown';
       
-      try {        // Method 1: Try clearAllChats if available
+      try {        
+        // Method 1: Try clearAllChats if available
         if (typeof client.clearAllChats === 'function') {
           logger.debug('Using clearAllChats method for chat clearing', {
             userId: message.sender.id,
@@ -153,30 +134,28 @@ export const clearallCommand: Command = {
         // Success message
         const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
         
-        let resultMessage = `✅ *RIWAYAT CHAT BERHASIL DIBERSIHKAN*\n\n`;
-        
-        if (clearedCount === -1) {
-          resultMessage += `🧹 *Status:* Semua chat dibersihkan\n`;
-        } else {
-          resultMessage += `🧹 *Chat Dibersihkan:* ${clearedCount} chat\n`;
-        }
-        
-        resultMessage += `⚙️ *Metode:* ${methodUsed}\n` +
-          `⏰ *Waktu:* ${timestamp}\n` +
-          `👑 *Oleh:* Owner\n\n` +
-          `✨ *Hasil:* Memory bot telah dibersihkan!\n` +
-          `🚀 *Bot siap dengan performa optimal.*`;
+        const statusMessage = clearedCount === -1 
+          ? getText('clearall.status_all', language)
+          : getText('clearall.status_count', language, undefined, { count: clearedCount.toString() });
 
         await client.reply(
           message.chatId,
-          resultMessage,
+          getText('clearall.success', language, undefined, {
+            statusMessage,
+            method: methodUsed,
+            timestamp
+          }),
           message.id
-        );        logger.success('Chat clearing completed successfully', {
+        );        
+
+        logger.success('Chat clearing completed successfully', {
           userId: message.sender.id,
           method: methodUsed,
           clearedCount: clearedCount,
           timestamp: timestamp
-        });      } catch (clearError) {
+        });      
+
+      } catch (clearError) {
         logger.error('Error during chat clearing', {
           userId: message.sender.id,
           error: clearError instanceof Error ? clearError.message : String(clearError),
@@ -185,16 +164,14 @@ export const clearallCommand: Command = {
         
         await client.reply(
           message.chatId,
-          `❌ *OPERASI GAGAL*\n\n` +
-          `Terjadi kesalahan saat membersihkan chat.\n\n` +
-          `🔧 *Saran:*\n` +
-          `• Restart bot dan coba lagi\n` +
-          `• Periksa koneksi WhatsApp\n` +
-          `• Hapus chat manual jika diperlukan\n\n` +
-          `_Coba lagi nanti atau restart bot._`,
+          getText('clearall.error_cleanup', language),
           message.id
         );
-      }    } catch (error) {
+      }    
+
+    } catch (error) {
+      const language = user?.language || Language.INDONESIAN;
+      
       logger.error('Critical error in clearall command', {
         userId: message.sender.id,
         chatId: message.chatId,
@@ -205,12 +182,7 @@ export const clearallCommand: Command = {
       try {
         await client.reply(
           message.chatId,
-          `❌ *KESALAHAN SISTEM*\n\n` +
-          `Terjadi kesalahan kritis.\n\n` +
-          `🔧 *Solusi:*\n` +
-          `• Restart bot\n` +
-          `• Periksa log error\n` +
-          `• Hubungi support jika masalah berlanjut`,
+          getText('clearall.error_critical', language),
           message.id
         );
       } catch (replyError) {

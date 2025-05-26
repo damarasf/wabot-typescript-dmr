@@ -1,9 +1,10 @@
 import { Client, Message, ContactId } from '@open-wa/wa-automate';
 import { Command } from '../middlewares/commandParser';
-import { User } from '../database/models';
+import { User, Language } from '../database/models';
 import config from '../utils/config';
 import logger from '../utils/logger';
 import { getDisplayPhoneNumber } from '../utils/phoneUtils';
+import { getText } from '../utils/i18n';
 
 /**
  * Restart Command
@@ -36,6 +37,9 @@ export const restartCommand: Command = {
   
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
     try {
+      // Detect user language
+      const language = user?.language || Language.INDONESIAN;
+      
       const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
       const uptime = process.uptime();
       const uptimeFormatted = formatUptime(uptime);
@@ -46,20 +50,13 @@ export const restartCommand: Command = {
         // Send confirmation request with system info
         await client.reply(
           message.from,
-          `*🔄 Konfirmasi Restart Bot*\n\n` +
-            `⚠️ *KONFIRMASI RESTART DIPERLUKAN*\n\n` +
-            `🤖 *Info Bot:*\n` +
-            `• Nama: ${config.botName}\n` +
-            `• Uptime: ${uptimeFormatted}\n` +
-            `• PID: ${process.pid}\n` +
-            `• Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB\n\n` +
-            `🔄 *Dampak Restart:*\n` +
-            `• Bot akan offline 30-60 detik\n` +
-            `• Semua sesi akan terputus\n` +
-            `• Proses akan dimulai ulang\n\n` +
-            `✅ *Untuk melanjutkan:*\n` +
-            `\`restart confirm\` - Lanjutkan restart\n\n` +
-            `⏰ *Timeout:* 30 detik (otomatis batal)`,
+          getText('restart.help', language, undefined, {
+            botName: config.botName,
+            uptime: uptimeFormatted,
+            processId: process.pid.toString(),
+            memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024).toString(),
+            nodeVersion: process.version
+          }),
           message.id        );
 
         logger.debug('Restart confirmation requested by owner', {
@@ -72,38 +69,25 @@ export const restartCommand: Command = {
       logger.command('Confirmed restart initiated by owner', {
         userId: message.sender.id,
         uptime: uptimeFormatted
-      });
-        // Send restart notification with countdown
+      });        // Send restart notification with countdown
       await client.reply(
         message.from,
-        `*🔄 Restart Bot Dimulai*\n\n` +
-          `⏳ *BOT SEDANG DIRESTART...*\n\n` +
-          `🤖 *Detail Restart:*\n` +
-          `• Dipicu oleh: Owner\n` +
-          `• Waktu mulai: ${currentTime}\n` +
-          `• Uptime sebelumnya: ${uptimeFormatted}\n\n` +
-          `⏰ *Timeline:*\n` +
-          `• 00:05 - Menyimpan data\n` +
-          `• 00:10 - Menutup koneksi\n` +
-          `• 00:15 - Restart proses\n` +
-          `• 01:00 - Bot kembali online\n\n` +
-          `📱 *Status:* Memulai shutdown...\n` +
-          `🔄 Bot akan kembali online sebentar lagi!`,
+        getText('restart.starting', language, undefined, {
+          currentTime,
+          uptime: uptimeFormatted
+        }),
         message.id
       );      // Prepare detailed owner notification
-      const ownerNotification = `*🤖 Bot Restart Notification*\n\n` +
-        `🔄 *BOT RESTART INITIATED*\n\n` +
-        `👑 *Dipicu oleh:* Owner (${getDisplayPhoneNumber(message.sender.id)})\n` +
-        `📍 *Lokasi:* ${isFromGroup ? 'Group Chat' : 'Private Chat'}\n` +
-        `⏰ *Waktu:* ${currentTime}\n\n` +
-        `📊 *System Info:*\n` +
-        `• Bot Name: ${config.botName}\n` +
-        `• Uptime: ${uptimeFormatted}\n` +
-        `• Process ID: ${process.pid}\n` +
-        `• Memory Usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB\n` +
-        `• Node Version: ${process.version}\n\n` +
-        `🔄 *Status:* Initializing restart sequence...\n` +
-        `🚀 Bot akan kembali online dalam 30-60 detik.`;
+      const ownerNotification = getText('restart.owner_notification', language, undefined, {
+        ownerPhone: getDisplayPhoneNumber(message.sender.id),
+        location: isFromGroup ? 'Group Chat' : 'Private Chat',
+        currentTime,
+        botName: config.botName,
+        uptime: uptimeFormatted,
+        processId: process.pid.toString(),
+        memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024).toString(),
+        nodeVersion: process.version
+      });
 
       // Send private notification to owner if restart is from group
       if (isFromGroup) {        try {
@@ -123,12 +107,7 @@ export const restartCommand: Command = {
         try {
           await client.reply(
             message.from,
-            `*🔄 Restart Progress*\n\n` +
-              `📊 *MENYIMPAN DATA...*\n\n` +
-              `✅ Database connections closing\n` +
-              `✅ Active sessions saving\n` +
-              `⏳ Memory cleanup in progress\n\n` +
-              `⏰ *ETA:* 10 detik lagi`,
+            getText('restart.progress_saving', language),
             message.id
           );} catch (updateError) {
           logger.debug('Restart progress update failed', {
@@ -140,13 +119,7 @@ export const restartCommand: Command = {
       setTimeout(async () => {        try {
           await client.reply(
             message.from,
-            `*🔄 Final Restart*\n\n` +
-              `🚀 *RESTARTING NOW...*\n\n` +
-              `✅ Data saved successfully\n` +
-              `✅ Connections closed\n` +
-              `🔄 Process restarting...\n\n` +
-              `💫 *See you in a moment!*\n` +
-              `⏰ Bot akan online kembali sebentar lagi`,
+            getText('restart.final', language),
             message.id
           );} catch (finalError) {
           logger.debug('Final restart message failed', {
@@ -167,28 +140,24 @@ export const restartCommand: Command = {
         }, 1000);
         
       }, 10000);    } catch (error) {
+      // Detect user language for error message
+      const language = user?.language || Language.INDONESIAN;
+      
       logger.error('Command error in restart', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         processId: process.pid,
         memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
         uptime: formatUptime(process.uptime())
-      });
-        await client.reply(
+      });      await client.reply(
         message.from,
-        `*❌ Restart Gagal*\n\n` +
-          `🚨 *ERROR SAAT RESTART!*\n\n` +
-          `⚠️ *Detail Error:*\n` +
-          `• ${(error as Error).message || 'Unknown error'}\n\n` +
-          `🔄 *Solusi:*\n` +
-          `• Coba restart manual dari server\n` +
-          `• Periksa log sistem untuk detail\n` +
-          `• Hubungi developer jika masalah berlanjut\n\n` +
-          `📊 *System Info:*\n` +
-          `• PID: ${process.pid}\n` +
-          `• Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB\n` +
-          `• Uptime: ${formatUptime(process.uptime())}\n\n` +
-          `⏰ *Waktu error:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+        getText('restart.error', language, undefined, {
+          errorMessage: (error as Error).message || 'Unknown error',
+          processId: process.pid.toString(),
+          memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024).toString(),
+          uptime: formatUptime(process.uptime()),
+          currentTime: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+        }),
         message.id
       );
     }

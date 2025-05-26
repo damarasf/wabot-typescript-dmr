@@ -3,6 +3,7 @@ import { User, UserLevel, FeatureType } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import * as n8nIntegration from '../utils/n8nIntegration';
+import { getText } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
 
@@ -27,7 +28,8 @@ const n8n: Command = {
    * @param args - Command arguments [workflow_id, ...parameters]
    * @param client - WhatsApp client instance
    * @param user - User database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {    // Validate user registration
+   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    // Validate user registration
     if (!user) {
       logger.debug('Unregistered user attempted to use N8N', {
         userId: message.sender.id,
@@ -35,12 +37,13 @@ const n8n: Command = {
       });
       await client.reply(
         message.chatId,
-        '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
+        getText('n8n.not_registered'),
         message.id
       );
       return;
     }
-      try {
+
+    try {
       logger.command('Processing N8N workflow request for user', {
         userId: user.id,
         phoneNumber: user.phoneNumber,
@@ -58,7 +61,10 @@ const n8n: Command = {
         });
         await client.reply(
           message.chatId,
-          `⚠️ Anda telah mencapai batas penggunaan fitur N8N (${limitInfo.currentUsage}/${limitInfo.maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium untuk mendapatkan limit lebih tinggi.`,
+          getText('n8n.limit_reached', user.language, undefined, {
+            currentUsage: limitInfo.currentUsage.toString(),
+            maxUsage: limitInfo.maxUsage.toString()
+          }),
           message.id
         );
         return;
@@ -69,7 +75,7 @@ const n8n: Command = {
       if (!workflowId) {
         await client.reply(
           message.chatId,
-          '❌ Workflow ID tidak boleh kosong. Contoh: `!n8n translate Hello World`',
+          getText('n8n.workflow_id_empty', user.language),
           message.id
         );
         return;
@@ -77,7 +83,8 @@ const n8n: Command = {
       
       // Extract parameters
       const params = args.slice(1).join(' ');
-        // Validate N8N configuration
+
+      // Validate N8N configuration
       if (!config.n8nUrl || !config.n8nToken) {
         logger.debug('N8N configuration missing', {
           hasUrl: !!config.n8nUrl,
@@ -85,7 +92,7 @@ const n8n: Command = {
         });
         await client.reply(
           message.chatId,
-          '❌ Konfigurasi N8N tidak tersedia. Silakan hubungi administrator.',
+          getText('n8n.config_missing', user.language),
           message.id
         );
         return;
@@ -94,7 +101,7 @@ const n8n: Command = {
       // Send processing message
       const processingMsg = await client.reply(
         message.chatId,
-        '⌛ Sedang memproses permintaan N8N...',
+        getText('n8n.executing', user.language),
         message.id
       );
       
@@ -126,7 +133,8 @@ const n8n: Command = {
       
       // Increment usage count
       await userManager.incrementUsage(user.id, FeatureType.N8N);
-        // Format and send the result
+
+      // Format and send the result
       let resultText: string;
       if (typeof result === 'object' && result !== null) {
         // Handle different result formats
@@ -143,7 +151,10 @@ const n8n: Command = {
       
       // Truncate very long results
       if (resultText.length > 2000) {
-        resultText = resultText.substring(0, 1900) + '\n\n_... (hasil dipotong karena terlalu panjang)_';
+        const truncateText = user.language === 'id' 
+          ? '_... (hasil dipotong karena terlalu panjang)_'
+          : '_... (result truncated because it\'s too long)_';
+        resultText = resultText.substring(0, 1900) + '\n\n' + truncateText;
       }
       
       logger.success('N8N workflow completed successfully for user', {
@@ -155,10 +166,13 @@ const n8n: Command = {
       
       await client.reply(
         message.chatId,
-        `✅ *Hasil N8N Workflow*\n\n${resultText}`,
+        getText('n8n.success', user.language, undefined, {
+          result: resultText
+        }),
         message.id
       );
-        } catch (error) {
+
+    } catch (error) {
       logger.error('Error executing N8N workflow', {
         workflowId: args[0],
         userId: user.id,
@@ -167,39 +181,13 @@ const n8n: Command = {
         stack: error instanceof Error ? error.stack : undefined
       });
       
-      // Enhanced error handling with specific error types
-      let errorMessage = 'Terjadi kesalahan saat menjalankan workflow N8N.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('404') || error.message.includes('not found')) {
-          errorMessage = 'Workflow N8N tidak ditemukan. Pastikan ID workflow benar.';
-        } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
-          errorMessage = 'Token N8N tidak valid. Silakan hubungi administrator.';
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'Workflow N8N timeout. Silakan coba lagi atau gunakan parameter yang lebih sederhana.';
-        } else if (error.message.includes('rate limit')) {
-          errorMessage = 'Terlalu banyak permintaan ke N8N. Silakan tunggu sebentar dan coba lagi.';
-        }
-        logger.debug('N8N error details', {
-          userId: user.id,
-          errorMessage: error.message,
-          errorType: error.constructor.name
-        });
-      }
-      
-      try {
-        await client.reply(
-          message.chatId, 
-          `❌ ${errorMessage}\n\n_Pastikan ID workflow valid dan parameter sesuai._`,
-          message.id
-        );
-      } catch (replyError) {
-        logger.error('Failed to send N8N error message', {
-          userId: user.id,
-          originalError: error instanceof Error ? error.message : String(error),
-          replyError: replyError instanceof Error ? replyError.message : String(replyError)
-        });
-      }
+      await client.reply(
+        message.chatId,
+        getText('n8n.error', user.language, undefined, {
+          error: error instanceof Error ? error.message : String(error)
+        }),
+        message.id
+      );
     }
   },
 };

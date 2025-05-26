@@ -27,25 +27,19 @@ const language: Command = {
    * @param user - User database object
    */
   async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {
-      if (!user) {
+    try {      if (!user) {
         await client.reply(
           message.chatId,
-          '⚠️ Anda belum terdaftar. Ketik !register untuk mendaftar.\n⚠️ You are not registered. Type !register to register.',
+          getText('user.not_registered', Language.INDONESIAN) + '\n' + getText('user.not_registered', Language.ENGLISH),
           message.id
         );
         return;
-      }
-
-      // If no argument provided, show current language and help
+      }      // If no argument provided, show current language and help
       if (args.length === 0) {
-        const currentLangText = user.language === Language.INDONESIAN 
-          ? '🌐 Bahasa saat ini: Bahasa Indonesia' 
-          : '🌐 Current language: English';
+        const currentLangText = getText('language.current', user.language);
+        const helpText = getText('language.help', user.language);
         
-        const helpText = user.language === Language.INDONESIAN
-          ? '🌐 Gunakan: !language [id/en]\n• id = Bahasa Indonesia\n• en = English'
-          : '🌐 Usage: !language [id/en]\n• id = Indonesian\n• en = English';        await client.reply(
+        await client.reply(
           message.chatId,
           `*🌐 Language Settings*\n\n${currentLangText}\n\n${helpText}`,
           message.id
@@ -53,13 +47,9 @@ const language: Command = {
         return;
       }
 
-      const newLanguage = args[0].toLowerCase();
-
-      // Validate language code
+      const newLanguage = args[0].toLowerCase();      // Validate language code
       if (!isValidLanguage(newLanguage)) {
-        const errorText = user.language === Language.INDONESIAN
-          ? '❌ Bahasa tidak valid. Pilihan: id (Indonesia) atau en (English)'
-          : '❌ Invalid language. Options: id (Indonesian) or en (English)';
+        const errorText = getText('language.invalid', user.language);
         
         await client.reply(
           message.chatId,
@@ -67,13 +57,11 @@ const language: Command = {
           message.id
         );
         return;
-      }
-
-      // Check if user is trying to set the same language
+      }      // Check if user is trying to set the same language
       if (user.language === newLanguage) {
         const sameLanguageText = newLanguage === Language.INDONESIAN
-          ? '✅ Bahasa Anda sudah diatur ke Bahasa Indonesia!'
-          : '✅ Your language is already set to English!';
+          ? getText('language.changed.to_id', Language.INDONESIAN)
+          : getText('language.changed.to_en', Language.ENGLISH);
         
         await client.reply(
           message.chatId,
@@ -84,18 +72,17 @@ const language: Command = {
       }
 
       // Update user's language preference
-      await user.update({ language: newLanguage as Language });
-
-      // Send confirmation in the NEW language
+      await user.update({ language: newLanguage as Language });      // Send confirmation in the NEW language
       const successText = newLanguage === Language.INDONESIAN
-        ? '✅ Bahasa berhasil diubah ke Bahasa Indonesia!'
-        : '✅ Language successfully changed to English!';
+        ? getText('language.changed.to_id', Language.INDONESIAN)
+        : getText('language.changed.to_en', Language.ENGLISH);
 
-      const infoText = newLanguage === Language.INDONESIAN
-        ? '📱 Semua respon bot sekarang akan menggunakan Bahasa Indonesia.\n💡 Ketik !help untuk melihat menu dalam bahasa baru.'
-        : '📱 All bot responses will now use English.\n💡 Type !help to see the menu in your new language.';      await client.reply(
+      const infoText = getText('language.info_text', newLanguage as Language);
+      const titleText = getText('language.settings_title', newLanguage as Language);
+
+      await client.reply(
         message.chatId,
-        `*${newLanguage === Language.INDONESIAN ? '🌐 Pengaturan Bahasa' : '🌐 Language Settings'}*\n\n${successText}\n\n${infoText}`,
+        `*${titleText}*\n\n${successText}\n\n${infoText}`,
         message.id
       );
 
@@ -106,12 +93,8 @@ const language: Command = {
         error: error instanceof Error ? error.message : error,
         chatId: message.chatId,
         sender: message.sender?.id || 'unknown'
-      });
-
-      // Send error message in user's current language (if user exists)
-      const errorText = user?.language === Language.ENGLISH
-        ? '❌ An error occurred while changing language. Please try again later.'
-        : '❌ Terjadi kesalahan saat mengubah bahasa. Silakan coba lagi nanti.';
+      });      // Send error message in user's current language (if user exists)
+      const errorText = getText('language.error', user?.language || Language.INDONESIAN);
 
       try {
         await client.reply(

@@ -5,6 +5,7 @@ A comprehensive TypeScript WhatsApp Bot with user management, N8N integration, a
 ## 🚀 Key Features
 
 - **Multi-Level User System** - Free, Premium, Admin with different limits
+- **Bilingual Support** - Indonesian and English with user preference switching
 - **N8N Integration** - Execute automated workflows
 - **Database Management** - PostgreSQL with Sequelize migrations
 - **Group Features** - Tag all members, group reminders
@@ -41,18 +42,30 @@ A comprehensive TypeScript WhatsApp Bot with user management, N8N integration, a
 
 > 📖 **Need detailed setup instructions?** Check out our [Complete Setup Guide](SETUP.md) for step-by-step instructions, troubleshooting, and production deployment.
 
-## 📚 Commands
+## 🌐 Language Support
 
-The bot includes 15 commands organized into 6 categories:
+This bot supports **bilingual operation** with Indonesian and English:
 
-- **Umum** - General commands like help, register, profile, language, limit
-- **Grup** - Group commands like tagall
-- **N8N** - N8N integration commands
-- **Utilitas** - Utility commands like reminder
-- **Admin** - Admin commands like upgrade, setlimit, resetlimit
-- **Owner** - Owner commands like broadcast, setadmin, restart, clearall
+### Language Switching
+- **Command**: `!language [id/en]` or `!bahasa [id/en]`
+- **Aliases**: `!lang`, `!bahasa`
+- **Examples**:
+  - `!language en` - Switch to English
+  - `!bahasa id` - Switch to Indonesian
+  - `!language` - Show current language and help
 
-See the [Commands Documentation](COMMANDS.md) for a complete list of all commands, their usage, and descriptions.
+### Features
+- **User Preference Storage** - Each user's language choice is saved in the database
+- **Complete Translation** - All bot responses available in both languages
+- **Real-time Switching** - Instant language change without restart
+- **Fallback System** - Graceful handling of missing translations
+- **Dynamic Content** - User data (names, numbers, dates) properly integrated
+
+### Available Languages
+- 🇮🇩 **Indonesian** (`id`) - Default language
+- 🇺🇸 **English** (`en`) - Full English support
+
+All commands, help messages, error messages, and system notifications are available in both languages.
 
 ## 🛠️ Development
 
