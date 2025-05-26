@@ -1,10 +1,11 @@
 import { Message, Client, ContactId, ChatId } from '@open-wa/wa-automate';
-import { User, UserLevel } from '../database/models';
+import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import config from '../utils/config';
 import logger from '../utils/logger';
 import { isOwner, getDisplayPhoneNumber } from '../utils/phoneUtils';
+import { getText } from '../utils/i18n';
 
 /**
  * Upgrade Command
@@ -21,28 +22,28 @@ const upgrade: Command = {
   cooldown: 5,
   requiredArgs: 1,
   adminOnly: true,
-  
-  /**
+    /**
    * Execute the upgrade command
    * @param message - WhatsApp message object
    * @param args - Command arguments [phone_number or mention]
    * @param client - WhatsApp client instance
    * @param user - Admin user database object
-   */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
-    try {      logger.command(`upgrade from ${message.sender.id}`, {
+   */
+  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    const language = user?.language || Language.INDONESIAN;
+    
+    try {logger.command(`upgrade from ${message.sender.id}`, {
         userId: message.sender.id,
         args,
         chatId: message.chatId
       });
         // Validate admin permissions (redundant check for safety)
       const isOwnerUser = isOwner(message.sender.id, config.ownerNumber);
-      const isAdmin = user && user.level >= UserLevel.ADMIN;
-        if (!isOwnerUser && !isAdmin) {
+      const isAdmin = user && user.level >= UserLevel.ADMIN;      if (!isOwnerUser && !isAdmin) {
         logger.user(`Unauthorized upgrade attempt by ${getDisplayPhoneNumber(message.sender.id)}`);
         await client.reply(
           message.chatId,
-          '❌ Anda tidak memiliki izin untuk menggunakan perintah ini.\n\n' +
-          '_Hanya admin dan owner yang dapat mengupgrade pengguna._',
+          getText('upgrade.access_denied', language),
           message.id
         );
         return;
@@ -63,17 +64,14 @@ const upgrade: Command = {
           targetPhoneNumber = phoneArg + '@c.us';
         }
       }
-      
-      // Validate target user input
+        // Validate target user input
       if (!targetPhoneNumber) {
         await client.reply(
           message.chatId,
-          '❌ Silakan tag pengguna yang ingin di-upgrade atau masukkan nomor telepon.\n\n' +
-          '*Cara penggunaan:*\n' +
-          '• `!upgrade @user` (tag pengguna)\n' +
-          '• `!upgrade 6281234567890` (nomor telepon)',
+          getText('upgrade.invalid_target', language),
           message.id
-        );        return;
+        );
+        return;
       }
       
       logger.debug(`Looking for target user: ${targetPhoneNumber}`, {
@@ -83,36 +81,36 @@ const upgrade: Command = {
       
       // Find target user in database
       const targetUser = await userManager.getUserByPhone(targetPhoneNumber);
-      
-      if (!targetUser) {
+        if (!targetUser) {
         await client.reply(
           message.chatId,
-          '❌ Pengguna belum terdaftar dalam sistem.\n\n' +
-          '_Pengguna harus melakukan registrasi terlebih dahulu dengan perintah !register_',
+          getText('upgrade.user_not_found', language),
           message.id
         );
         return;
       }
-      
-      // Check if user is already premium or higher
+        // Check if user is already premium or higher
       if (targetUser.level >= UserLevel.PREMIUM) {
-        const currentLevelName = targetUser.level === UserLevel.PREMIUM ? 'Premium' : 'Admin';
+        const currentLevelName = targetUser.level === UserLevel.PREMIUM ? 
+          getText('common.level_premium', language) : 
+          getText('common.level_admin', language);
         await client.reply(
           message.chatId,
-          `⚠️ Pengguna ini sudah memiliki level ${currentLevelName} atau lebih tinggi.\n\n` +
-          `📊 *Level saat ini:* ${currentLevelName}`,
+          getText('upgrade.already_premium', language, undefined, {
+            levelName: currentLevelName
+          }),
           message.id
         );
         return;
-      }
-        // Prevent self-upgrade (if not owner)
+      }      // Prevent self-upgrade (if not owner)
       if (!isOwnerUser && targetUser.phoneNumber === getDisplayPhoneNumber(message.sender.id)) {
         await client.reply(
           message.chatId,
-          '❌ Anda tidak dapat mengupgrade level diri sendiri.',
+          getText('upgrade.self_upgrade_denied', language),
           message.id
         );
-        return;      }
+        return;
+      }
         logger.user(`Upgrading user ${targetUser.phoneNumber} to Premium`, {
         requestedBy: getDisplayPhoneNumber(message.sender.id),
         targetLevel: 'Premium'
@@ -120,15 +118,14 @@ const upgrade: Command = {
       
       // Upgrade user to premium
       const updatedUser = await userManager.setUserLevel(targetUser.id, UserLevel.PREMIUM);
-      
-      if (!updatedUser) {        logger.error(`Failed to upgrade user ${targetUser.phoneNumber}`, {
+        if (!updatedUser) {
+        logger.error(`Failed to upgrade user ${targetUser.phoneNumber}`, {
           targetPhone: targetUser.phoneNumber,
           requestedBy: getDisplayPhoneNumber(message.sender.id)
         });
         await client.reply(
           message.chatId,
-          '❌ Terjadi kesalahan saat mengupgrade pengguna.\n\n' +
-          '_Silakan coba lagi atau hubungi administrator sistem._',
+          getText('upgrade.upgrade_failed', language),
           message.id
         );
         return;
@@ -149,35 +146,35 @@ const upgrade: Command = {
         logger.success(`Successfully upgraded user ${targetUser.phoneNumber} to Premium`, {
         targetPhone: targetUser.phoneNumber,
         requestedBy: getDisplayPhoneNumber(message.sender.id)
-      });
-        // Send success message to current chat
+      });      // Send success message to current chat
+      const currentTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
       const successMessage = mentionedUsers.length > 0 ?
-        `✅ Berhasil mengupgrade @${getDisplayPhoneNumber(targetPhoneNumber)} ke level Premium!\n\n` +
-        `👤 *Target:* ${targetName}\n` +
-        `👑 *Diupgrade oleh:* ${adminName}\n` +
-        `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}` :
-        `✅ Berhasil mengupgrade pengguna ${getDisplayPhoneNumber(targetPhoneNumber)} ke level Premium!\n\n` +
-        `👑 *Diupgrade oleh:* ${adminName}\n` +
-        `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`;
+        getText('upgrade.success_with_mention', language, undefined, {
+          targetPhone: getDisplayPhoneNumber(targetPhoneNumber),
+          targetName,
+          adminName,
+          currentTime
+        }) :
+        getText('upgrade.success_without_mention', language, undefined, {
+          targetPhone: getDisplayPhoneNumber(targetPhoneNumber),
+          adminName,
+          currentTime
+        });
       
       if (mentionedUsers.length > 0) {
         await client.sendTextWithMentions(message.chatId, successMessage);
       } else {
         await client.reply(message.chatId, successMessage, message.id);
       }
-      
-      // Notify the target user via private message
-      try {        await client.sendText(
+        // Notify the target user via private message
+      try {
+        await client.sendText(
           targetPhoneNumber as ChatId,
-          `🎉 *Selamat! Level Akun Upgraded!*\n\n` +
-          `📈 Level akun Anda telah diupgrade menjadi *Premium*!\n\n` +
-          `✨ *Keuntungan Premium:*\n` +
-          `• Limit penggunaan lebih tinggi untuk semua fitur\n` +
-          `• Akses prioritas ke fitur baru\n` +
-          `• Dukungan teknis yang lebih baik\n\n` +
-          `👑 *Diupgrade oleh:* ${adminName}\n` +
-          `🕐 *Waktu:* ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}\n\n` +
-          `_Terima kasih telah menggunakan bot kami!_`        );
+          getText('upgrade.user_notification', language, undefined, {
+            adminName,
+            currentTime
+          })
+        );
       } catch (notifyError) {
         logger.error('Failed to notify target user', {
           targetPhone: targetPhoneNumber,
@@ -192,16 +189,16 @@ const upgrade: Command = {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
       });
-      
-      // Enhanced error handling with specific error types
-      let errorMessage = 'Terjadi kesalahan saat mengupgrade pengguna.';
+        // Enhanced error handling with specific error types
+      let errorMessage = getText('upgrade.general_error', language);
       
       if (error instanceof Error) {
         if (error.message.includes('database')) {
-          errorMessage = 'Terjadi kesalahan database saat mengupgrade pengguna.';
+          errorMessage = getText('upgrade.database_error', language);
         } else if (error.message.includes('validation')) {
-          errorMessage = 'Data pengguna tidak valid untuk diupgrade.';        } else if (error.message.includes('permission')) {
-          errorMessage = 'Tidak memiliki izin untuk mengupgrade pengguna ini.';
+          errorMessage = getText('upgrade.validation_error', language);
+        } else if (error.message.includes('permission')) {
+          errorMessage = getText('upgrade.permission_error', language);
         }
         logger.debug('Upgrade error details', { 
           message: error.message,
@@ -212,7 +209,7 @@ const upgrade: Command = {
       try {
         await client.reply(
           message.chatId,
-          `❌ ${errorMessage}\n\n_Silakan coba lagi nanti atau hubungi administrator._`,
+          errorMessage,
           message.id
         );
       } catch (replyError) {

@@ -1,10 +1,11 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { User, UserLevel, Reminder, Group, FeatureType } from '../database/models';
+import { User, UserLevel, Reminder, Group, FeatureType, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import moment from 'moment-timezone';
 import config from '../utils/config';
 import logger from '../utils/logger';
+import { getText, formatDateTime } from '../utils/i18n';
 
 /**
  * Reminder Command
@@ -29,6 +30,8 @@ const reminder: Command = {
    * @param client - WhatsApp client instance
    * @param user - User database object
    */  async execute(message: Message, args: string[], client: Client, user?: User): Promise<void> {
+    const language = user?.language || Language.INDONESIAN;
+    
     // Validate user registration
     if (!user) {
       logger.debug('Unregistered user attempted to use reminder', {
@@ -37,7 +40,7 @@ const reminder: Command = {
       });
       await client.reply(
         message.chatId,
-        '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
+        getText('not_registered', language),
         message.id
       );
       return;
@@ -48,8 +51,7 @@ const reminder: Command = {
         phoneNumber: user.phoneNumber,
         args: args.length
       });
-      
-      // Check user limit for Reminder feature
+        // Check user limit for Reminder feature
       const limitInfo = await userManager.checkLimit(user, FeatureType.REMINDER);
       if (limitInfo.hasReachedLimit) {
         logger.debug('User has reached reminder limit', {
@@ -60,7 +62,10 @@ const reminder: Command = {
         });
         await client.reply(
           message.chatId,
-          `⚠️ Anda telah mencapai batas penggunaan fitur Reminder (${limitInfo.currentUsage}/${limitInfo.maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium untuk mendapatkan limit lebih tinggi.`,
+          getText('reminder.limit_reached', language, undefined, {
+            current: limitInfo.currentUsage.toString(),
+            max: limitInfo.maxUsage.toString()
+          }),
           message.id
         );
         return;
@@ -68,35 +73,28 @@ const reminder: Command = {
       
       // Extract and validate time argument
       const timeArg = args[0].toLowerCase();
-      const scheduledTime = parseTime(timeArg);
-        if (!scheduledTime) {
+      const scheduledTime = parseTime(timeArg);      if (!scheduledTime) {
         logger.debug('Invalid time format provided', {
           userId: user.id,
           timeArg: timeArg
         });
         await client.reply(
           message.chatId,
-          '❌ Format waktu tidak valid. Gunakan format seperti: 30s, 10m, 2h, 1d\n\n' +
-          '*Contoh:*\n' +
-          '• `30s` = 30 detik\n' +
-          '• `10m` = 10 menit\n' +
-          '• `2h` = 2 jam\n' +
-          '• `1d` = 1 hari',
+          getText('reminder.invalid_time_format', language),
           message.id
         );
         return;
       }
-      
-      // Extract reminder message
+        // Extract reminder message
       const reminderMessage = args.slice(1).join(' ');
       if (reminderMessage.length > 500) {
         await client.reply(
           message.chatId,
-          '❌ Pesan reminder terlalu panjang. Maksimal 500 karakter.',
+          getText('reminder.message_too_long', language),
           message.id
         );
         return;
-      }      // Determine group context and get group database ID if applicable
+      }// Determine group context and get group database ID if applicable
       const isGroup = message.isGroupMsg;
       let groupDatabaseId: number | null = null;
       
@@ -132,10 +130,11 @@ const reminder: Command = {
       
       // Increment usage count
       await userManager.incrementUsage(user.id, FeatureType.REMINDER);
-      
-      // Format success response
+        // Format success response
       const formattedTime = scheduledTime.format('HH:mm:ss DD/MM/YYYY');
-      const contextText = isGroup ? 'grup ini' : 'Anda secara personal';
+      const contextText = isGroup ? 
+        getText('reminder.group_context', language) : 
+        getText('reminder.personal_context', language);
       
       logger.success('Reminder created successfully', {
         reminderId: reminder.id,
@@ -147,14 +146,15 @@ const reminder: Command = {
       
       await client.reply(
         message.chatId,
-        `✅ *Reminder berhasil dibuat!*\n\n` +
-        `📝 *Pesan:* ${reminderMessage}\n` +
-        `⏰ *Waktu:* ${formattedTime}\n` +
-        `📍 *Target:* ${contextText}\n\n` +
-        `_ID Reminder: ${reminder.id}_`,
+        getText('reminder.created', language, undefined, {
+          message: reminderMessage,
+          time: formattedTime,
+          context: contextText,
+          id: reminder.id.toString()
+        }),
         message.id
       );
-        } catch (error) {
+    } catch (error) {
       logger.error('Error creating reminder', {
         userId: user.id,
         phoneNumber: user.phoneNumber,
@@ -162,24 +162,12 @@ const reminder: Command = {
         stack: error instanceof Error ? error.stack : undefined
       });
       
-      // Enhanced error handling with specific error types
-      let errorMessage = 'Terjadi kesalahan saat membuat reminder. Silakan coba lagi nanti.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('validation')) {
-          errorMessage = 'Data reminder tidak valid. Periksa format waktu dan pesan Anda.';
-        } else if (error.message.includes('database')) {
-          errorMessage = 'Terjadi kesalahan database. Silakan coba lagi dalam beberapa saat.';
-        }
-        logger.debug('Reminder error details', {
-          userId: user.id,
-          errorMessage: error.message,
-          errorType: error.constructor.name
-        });
-      }
-      
       try {
-        await client.reply(message.chatId, `❌ ${errorMessage}`, message.id);
+        await client.reply(
+          message.chatId, 
+          getText('reminder.error', language), 
+          message.id
+        );
       } catch (replyError) {
         logger.error('Failed to send reminder error message', {
           userId: user.id,

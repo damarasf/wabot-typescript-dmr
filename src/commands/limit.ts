@@ -1,5 +1,5 @@
 import { Message, Client } from '@open-wa/wa-automate';
-import { User, UserLevel, Usage, FeatureType } from '../database/models';
+import { User, UserLevel, Usage, FeatureType, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import * as userManager from '../utils/userManager';
 import { formatNumber } from '../utils/formatter';
@@ -22,8 +22,7 @@ const limit: Command = {
   category: 'Umum',
   cooldown: 5,
   minimumLevel: UserLevel.FREE,
-  
-  /**
+    /**
    * Execute the limit command
    * @param message - WhatsApp message object
    * @param args - Command arguments (unused for limit)
@@ -34,8 +33,7 @@ const limit: Command = {
       logger.command('Processing limit command', {
         userId: message.sender.id,
         command: 'limit'
-      });
-        // Validate user registration
+      });      // Validate user registration
       if (!user) {
         logger.debug('Unregistered user attempted to check limits', {
           userId: message.sender.id,
@@ -43,11 +41,11 @@ const limit: Command = {
         });
         await client.reply(
           message.chatId,
-          getText('user.not_registered'),
+          getText('user.not_registered', Language.INDONESIAN),
           message.id
         );
         return;
-      }      // Check if user is owner (special case)
+      }// Check if user is owner (special case)
       const isOwnerFlag = isOwner(message.sender.id, config.ownerNumber);
       const isAdmin = user.level >= UserLevel.ADMIN;
       
@@ -71,24 +69,28 @@ const limit: Command = {
       });
 
       // Generate user information header
-      let userInfo = `👤 *Pengguna:* ${user.phoneNumber}\n`;
-      userInfo += `🏆 *Level:* ${UserLevel[user.level]}`;
+      let userInfo = `${getText('limit.user_label', user.language)} ${user.phoneNumber}\n`;
+      userInfo += `${getText('limit.level_label', user.language)} ${UserLevel[user.level]}`;
         if (isOwnerFlag) {
-        userInfo += ' (Owner)';
+        userInfo += getText('limit.owner_suffix', user.language);
       } else if (isAdmin) {
-        userInfo += ' (Unlimited)';
+        userInfo += getText('limit.admin_suffix', user.language);
       }
       
-      userInfo += `\n📅 *Terdaftar:* ${user.registeredAt.toLocaleDateString('id-ID')}\n`;
+      const registeredDate = user.language === 'en' 
+        ? user.registeredAt.toLocaleDateString('en-US')
+        : user.registeredAt.toLocaleDateString('id-ID');
+      
+      userInfo += `\n${getText('limit.registered_label', user.language)} ${registeredDate}\n`;
       
       // Generate feature limits section
-      let limitText = '\n📊 *LIMIT PENGGUNAAN*\n\n';
+      let limitText = getText('limit.usage_section_title', user.language);
       
       // Define all features with their display information
       const features = [
-        { type: FeatureType.N8N, name: 'N8N Workflow', icon: '🔧' },
-        { type: FeatureType.REMINDER, name: 'Pengingat', icon: '⏰' },
-        { type: FeatureType.TAG_ALL, name: 'Tag All Member', icon: '👥' }
+        { type: FeatureType.N8N, nameKey: 'limit.feature_n8n', icon: '🔧' },
+        { type: FeatureType.REMINDER, nameKey: 'limit.feature_reminder', icon: '⏰' },
+        { type: FeatureType.TAG_ALL, nameKey: 'limit.feature_tag_all', icon: '👥' }
       ];
 
       // Process each feature
@@ -97,32 +99,34 @@ const limit: Command = {
         const currentCount = usage?.count || 0;
         
         let maxLimit: number;
-        let limitType: string;
+        let limitTypeKey: string;
         let progressBar = '';
           // Determine limit based on user level and custom settings
         if (isOwnerFlag || isAdmin) {
           maxLimit = Infinity;
-          limitType = isOwnerFlag ? 'Owner' : 'Admin';
+          limitTypeKey = isOwnerFlag ? 'limit.type_owner' : 'limit.type_admin';
           progressBar = '∞';
         } else if (usage?.customLimit !== null && usage?.customLimit !== undefined) {
           maxLimit = usage.customLimit;
-          limitType = 'Custom';
+          limitTypeKey = 'limit.type_custom';
           progressBar = generateProgressBar(currentCount, maxLimit);
         } else if (user.level === UserLevel.PREMIUM) {
           maxLimit = config.premiumLimit;
-          limitType = 'Premium';
+          limitTypeKey = 'limit.type_premium';
           progressBar = generateProgressBar(currentCount, maxLimit);
         } else {
           maxLimit = config.freeLimit;
-          limitType = 'Free';
+          limitTypeKey = 'limit.type_free';
           progressBar = generateProgressBar(currentCount, maxLimit);
         }
 
         // Format limit display
         const limitDisplay = maxLimit === Infinity ? '∞' : formatNumber(maxLimit);
         const statusIcon = getUsageStatusIcon(currentCount, maxLimit);
+        const featureName = getText(feature.nameKey, user.language);
+        const limitType = getText(limitTypeKey, user.language);
         
-        limitText += `${feature.icon} *${feature.name}*\n`;
+        limitText += `${feature.icon} *${featureName}*\n`;
         limitText += `   ${statusIcon} ${currentCount}/${limitDisplay} (${limitType})\n`;
         
         if (progressBar && maxLimit !== Infinity) {
@@ -140,22 +144,23 @@ const limit: Command = {
       
       const hoursUntilReset = Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60));
       
-      limitText += `⏱️ *Reset Otomatis:* ${hoursUntilReset}h lagi (00:00 WIB)\n`;
+      limitText += getText('limit.reset_auto_label', user.language) + ' ' + 
+                   getText('limit.reset_time_format', user.language).replace('{hours}', hoursUntilReset.toString()) + '\n';
         // Add upgrade information for non-premium users
       if (user.level < UserLevel.PREMIUM && !isOwnerFlag) {
-        limitText += '\n💎 *Ingin limit lebih tinggi?*\n';
-        limitText += 'Hubungi admin untuk upgrade ke Premium!';
+        limitText += getText('limit.upgrade_title', user.language);
+        limitText += getText('limit.upgrade_text', user.language);
       }
 
       // Add usage tips
       if (user.level === UserLevel.FREE) {
-        limitText += '\n\n💡 *Tips:*\n';
-        limitText += '• Gunakan fitur secara bijak\n';
-        limitText += '• Limit direset setiap hari\n';
-        limitText += '• Upgrade untuk akses lebih luas';
+        limitText += getText('limit.tips_title', user.language);
+        limitText += getText('limit.tip_use_wisely', user.language);
+        limitText += getText('limit.tip_daily_reset', user.language);
+        limitText += getText('limit.tip_upgrade', user.language);
       }      // Format the complete message
       const completeMessage = userInfo + limitText;
-      const formattedMessage = `*📊 INFORMASI LIMIT*\n\n${completeMessage}`;
+      const formattedMessage = `${getText('limit.info_title', user.language)}\n\n${completeMessage}`;
 
       logger.success('Sending limit information to user', {
         userId: user.id,
@@ -183,12 +188,12 @@ const limit: Command = {
       });
       
       // Enhanced error handling
-      let errorMessage = 'Terjadi kesalahan saat mendapatkan informasi limit.';
+      let errorMessageKey = 'limit.error_general';
         if (error instanceof Error) {
         if (error.message.includes('database')) {
-          errorMessage = 'Kesalahan database saat mengambil data penggunaan.';
+          errorMessageKey = 'limit.error_database';
         } else if (error.message.includes('user')) {
-          errorMessage = 'Data pengguna tidak valid atau tidak ditemukan.';
+          errorMessageKey = 'limit.error_user';
         }
         logger.debug('Limit error details', {
           userId: message.sender.id,
@@ -198,9 +203,11 @@ const limit: Command = {
       }
       
       try {
+        const errorMessage = getText(errorMessageKey, user?.language);
+        const errorFooter = getText('limit.error_footer', user?.language);
         await client.reply(
           message.chatId,
-          `❌ ${errorMessage}\n\n_Silakan coba lagi nanti atau hubungi administrator._`,
+          `❌ ${errorMessage}${errorFooter}`,
           message.id
         );
       } catch (replyError) {

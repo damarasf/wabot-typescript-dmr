@@ -1,48 +1,49 @@
-import { UserLevel } from '../database/models';
+import { UserLevel, Language } from '../database/models';
+import { getText, getLevelName } from './i18n';
 import config from './config';
 
 // Create formatted help message for a command
-export function formatHelpCommand(command: any): string {
+export function formatHelpCommand(command: any, language: Language = Language.INDONESIAN): string {
   const { name, description, usage, example, minimumLevel, groupOnly, ownerOnly, adminOnly } = command;
-  
+
   let helpText = `*${name}*\n`;
   helpText += `${description}\n\n`;
-  
-  helpText += `*Penggunaan:*\n${usage}\n\n`;
-  
+
+  helpText += `*${getText('help.usage', language)}*\n${usage}\n\n`;
+
   if (example) {
-    helpText += `*Contoh:*\n${example}\n\n`;
+    helpText += `*${getText('help.example', language)}*\n${example}\n\n`;
   }
-  
   // Add restrictions
   const restrictions = [];
-  
+
   if (ownerOnly) {
-    restrictions.push('Hanya Owner');
+    restrictions.push(getText('formatter.owner_only', language));
   } else if (adminOnly) {
-    restrictions.push('Hanya Admin');
+    restrictions.push(getText('formatter.admin_only', language));
   } else if (minimumLevel) {
     switch (minimumLevel) {
       case UserLevel.FREE:
-        restrictions.push('Minimal Free User');
+        restrictions.push(getText('formatter.minimum_free', language));
         break;
       case UserLevel.PREMIUM:
-        restrictions.push('Minimal Premium User');
+        restrictions.push(getText('formatter.minimum_premium', language));
         break;
       case UserLevel.ADMIN:
-        restrictions.push('Minimal Admin');
+        restrictions.push(getText('formatter.minimum_admin', language));
         break;
     }
   }
-  
+
   if (groupOnly) {
-    restrictions.push('Hanya dalam Group');
+    restrictions.push(getText('formatter.group_only', language));
   }
-  
+
   if (restrictions.length > 0) {
-    helpText += `*Batasan:* ${restrictions.join(', ')}\n`;
+    const restrictionLabel = getText('formatter.restrictions_label', language);
+    helpText += `*${restrictionLabel}:* ${restrictions.join(', ')}\n`;
   }
-  
+
   return helpText;
 }
 
@@ -52,42 +53,46 @@ export function formatBox(title: string, content: string): string {
 }
 
 // Format user information
-export function formatUserInfo(user: any): string {
-  let levelName = 'Unknown';
+export function formatUserInfo(user: any, language: Language = Language.INDONESIAN): string {
+  let levelName = getText('formatter.unknown_level', language);
   
   switch (user.level) {
     case UserLevel.UNREGISTERED:
-      levelName = 'Belum Terdaftar';
+      levelName = getText('formatter.level_unregistered', language);
       break;
     case UserLevel.FREE:
-      levelName = 'Free User';
+      levelName = getText('formatter.level_free', language);
       break;
     case UserLevel.PREMIUM:
-      levelName = 'Premium User';
+      levelName = getText('formatter.level_premium', language);
       break;
     case UserLevel.ADMIN:
-      levelName = 'Admin';
+      levelName = getText('formatter.level_admin', language);
       break;
   }
   
   // Special handling for owner
   if (user.phoneNumber === config.ownerNumber) {
-    levelName = 'Owner';
+    levelName = getText('formatter.level_owner', language);
   }
   
   // Format registration date
-  const registeredDate = new Date(user.registeredAt).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const registeredDate = new Date(user.registeredAt).toLocaleDateString(
+    language === Language.INDONESIAN ? 'id-ID' : 'en-US', 
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }
+  );
+  
   // Create the formatted user info
-  let userInfo = `📱 *Nomor:* ${user.phoneNumber}\n`;
-  userInfo += `🏅 *Level:* ${levelName}\n`;
-  userInfo += `📆 *Terdaftar Pada:* ${registeredDate}\n`;
+  let userInfo = `${getText('formatter.phone_number', language)} ${user.phoneNumber}\n`;
+  userInfo += `${getText('formatter.level_label', language)} ${levelName}\n`;
+  userInfo += `${getText('formatter.registered_date', language)} ${registeredDate}\n`;
     // Note: Custom limits are now per-feature basis, check usage stats for specific limits
   
-  return `*📋 Profil Pengguna*\n\n${userInfo}`;
+  return `*${getText('formatter.user_profile_title', language)}*\n\n${userInfo}`;
 }
 
 // Format number with thousand separator

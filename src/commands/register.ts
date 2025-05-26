@@ -36,8 +36,7 @@ const register: Command = {
       if (user) {
         logger.info(`User already registered: ${message.sender.id} with level ${user.level}`);
         
-        const levelName = getLevelName(user.level, user.language);
-        const registrationDate = user.createdAt?.toLocaleDateString(
+        const levelName = getLevelName(user.level, user.language);        const registrationDate = user.createdAt?.toLocaleDateString(
           user.language === Language.INDONESIAN ? 'id-ID' : 'en-US', 
           {
             year: 'numeric',
@@ -45,14 +44,12 @@ const register: Command = {
             day: 'numeric',
             timeZone: 'Asia/Jakarta'
           }
-        ) || (user.language === Language.INDONESIAN ? 'Tidak diketahui' : 'Unknown');
+        ) || getText('register.unknown_date', user.language);
         
         const alreadyRegisteredText = getText('register.already_registered', user.language);
-        const levelText = user.language === Language.INDONESIAN ? 'Level' : 'Level';
-        const registeredSinceText = user.language === Language.INDONESIAN ? 'Terdaftar sejak' : 'Registered since';
-        const tipsText = user.language === Language.INDONESIAN 
-          ? 'Tips: Gunakan `!profile` untuk melihat informasi lengkap akun Anda.'
-          : 'Tips: Use `!profile` to view your complete account information.';
+        const levelText = getText('register.level_label', user.language);
+        const registeredSinceText = getText('register.registered_since', user.language);
+        const tipsText = getText('register.tips_profile', user.language);
         
         await client.reply(
           message.chatId,
@@ -105,20 +102,29 @@ const register: Command = {
       
       // Send success message
       await client.reply(message.chatId, welcomeMessage, message.id);
-      
-      // Send additional help information after a short delay
+        // Send additional help information after a short delay
       setTimeout(async () => {
         try {
+          const nextStepsTitle = getText('register.next_steps_title', newUser.language);
+          const stepHelp = getText('register.step_help', newUser.language);
+          const stepProfile = getText('register.step_profile', newUser.language);
+          const stepLimit = getText('register.step_limit', newUser.language);
+          const premiumPromotionTitle = getText('register.premium_promotion_title', newUser.language);
+          const premiumPromotionText = getText('register.premium_promotion_text', newUser.language);
+          const welcomeClosing = getText('register.welcome_closing', newUser.language, '', {
+            botName: config.botName
+          });
+          
           await client.sendText(
             message.chatId,
-            `🎯 *Langkah Selanjutnya:*\n\n` +
-            `1️⃣ Ketik \`!help\` untuk melihat semua perintah\n` +
-            `2️⃣ Ketik \`!profile\` untuk melihat profil Anda\n` +
-            `3️⃣ Ketik \`!limit\` untuk cek batas penggunaan\n\n` +
-            `💎 *Ingin upgrade ke Premium?*\n` +
-            `Hubungi administrator untuk mendapatkan akses Premium dengan fitur lebih lengkap!\n\n` +
-            `_Selamat menggunakan ${config.botName}! 🎉_`
-          );        } catch (followUpError) {
+            `${nextStepsTitle}\n\n` +
+            `${stepHelp}\n` +
+            `${stepProfile}\n` +
+            `${stepLimit}\n\n` +
+            `${premiumPromotionTitle}\n` +
+            `${premiumPromotionText}\n\n` +
+            `${welcomeClosing}`
+          );} catch (followUpError) {
           logger.error('Failed to send follow-up message', { 
             error: followUpError instanceof Error ? followUpError.message : followUpError 
           });
@@ -130,25 +136,26 @@ const register: Command = {
         error: error instanceof Error ? error.message : error,
         senderId: message.sender.id
       });
-      
-      // Enhanced error handling with specific error types
-      let errorMessage = 'Terjadi kesalahan saat mendaftarkan pengguna.';
+        // Enhanced error handling with specific error types
+      let errorMessage = getText('register.general_error', Language.INDONESIAN); // Default to Indonesian for error cases
       
       if (error instanceof Error) {
         if (error.message.includes('duplicate') || error.message.includes('unique')) {
-          errorMessage = 'Anda sudah terdaftar dalam sistem.';
+          errorMessage = getText('register.duplicate_error', Language.INDONESIAN);
         } else if (error.message.includes('database')) {
-          errorMessage = 'Terjadi kesalahan database saat pendaftaran.';
+          errorMessage = getText('register.database_error', Language.INDONESIAN);
         } else if (error.message.includes('validation')) {
-          errorMessage = 'Data pendaftaran tidak valid.';
+          errorMessage = getText('register.validation_error', Language.INDONESIAN);
         }
         logger.debug('Registration error details', { errorMessage: error.message });
       }
       
+      const errorFooter = getText('register.error_footer', Language.INDONESIAN);
+      
       try {
         await client.reply(
           message.chatId,
-          `❌ ${errorMessage}\n\n_Silakan coba lagi nanti atau hubungi administrator._`,
+          `❌ ${errorMessage}\n\n${errorFooter}`,
           message.id
         );
       } catch (replyError) {
@@ -167,29 +174,49 @@ const register: Command = {
  * @returns Formatted welcome message
  */
 function generateWelcomeMessage(displayName: string, user: User): string {
-  const registrationDate = new Date().toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Jakarta'
-  });
+  const registrationDate = new Date().toLocaleDateString(
+    user.language === Language.INDONESIAN ? 'id-ID' : 'en-US', 
+    {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    }
+  );
   
   // Get actual level name from user
   const levelName = user.getLevelName();
-    return `🎉 *Pendaftaran Berhasil!*\n\n` +
-    `Selamat datang *${displayName}*! Anda telah berhasil terdaftar sebagai pengguna ${config.botName}.\n\n` +
-    `📋 *Informasi Akun:*\n` +
-    `📱 *Nomor:* ${user.phoneNumber}\n` +
-    `🏷️ *Level:* ${levelName}\n` +
-    `📅 *Terdaftar:* ${registrationDate}\n\n` +
-    `🚀 *Fitur yang Tersedia:*\n` +
-    `• Akses ke semua perintah dasar\n` +
-    `• Integrasi dengan N8N workflows\n` +
-    `• Pengaturan reminder\n` +
-    `• Dan masih banyak lagi!\n\n` +
-    `💡 *Tips:* Ketik \`!help\` untuk melihat semua perintah yang tersedia.`;
+  
+  const welcomeTitle = getText('register.welcome_title', user.language);
+  const welcomeGreeting = getText('register.welcome_greeting', user.language, '', {
+    displayName,
+    botName: config.botName
+  });
+  const accountInfoTitle = getText('register.account_info_title', user.language);
+  const phoneNumberLabel = getText('register.phone_number_label', user.language);
+  const levelInfoLabel = getText('register.level_info_label', user.language);
+  const registeredDateLabel = getText('register.registered_date_label', user.language);
+  const featuresTitle = getText('register.features_title', user.language);
+  const featureBasicCommands = getText('register.feature_basic_commands', user.language);
+  const featureN8nIntegration = getText('register.feature_n8n_integration', user.language);
+  const featureReminderSettings = getText('register.feature_reminder_settings', user.language);
+  const featureMore = getText('register.feature_more', user.language);
+  const helpTip = getText('register.help_tip', user.language);
+  
+  return `${welcomeTitle}\n\n` +
+    `${welcomeGreeting}\n\n` +
+    `${accountInfoTitle}\n` +
+    `${phoneNumberLabel} ${user.phoneNumber}\n` +
+    `${levelInfoLabel} ${levelName}\n` +
+    `${registeredDateLabel} ${registrationDate}\n\n` +
+    `${featuresTitle}\n` +
+    `${featureBasicCommands}\n` +
+    `${featureN8nIntegration}\n` +
+    `${featureReminderSettings}\n` +
+    `${featureMore}\n\n` +
+    `${helpTip}`;
 }
 
 export default register;
