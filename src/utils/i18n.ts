@@ -461,10 +461,13 @@ const translations: LanguageData = {
   'command.desc.upgrade': {
     [Language.INDONESIAN]: 'Upgrade level pengguna',
     [Language.ENGLISH]: 'Upgrade user level'
-  },
-  'command.desc.broadcast': {
+  },  'command.desc.broadcast': {
     [Language.INDONESIAN]: 'Broadcast pesan ke semua pengguna',
     [Language.ENGLISH]: 'Broadcast message to all users'
+  },
+  'command.desc.safebroadcast': {
+    [Language.INDONESIAN]: 'Broadcast aman dengan anti-spam protection',
+    [Language.ENGLISH]: 'Safe broadcast with anti-spam protection'
   },
   'command.desc.clearall': {
     [Language.INDONESIAN]: 'Hapus semua riwayat chat',
@@ -1069,6 +1072,85 @@ const translations: LanguageData = {
   },  'broadcast.error': {
     [Language.INDONESIAN]: '❌ *BROADCAST GAGAL*\n\n🚨 *ERROR SAAT BROADCAST!*\n\n⚠️ *Detail Error:*\n• {errorMessage}\n\n🔄 *Solusi:*\n• Periksa koneksi internet\n• Coba dengan pesan lebih pendek\n• Coba lagi dalam beberapa menit\n• Laporkan ke developer jika terus error\n\n⏰ *Waktu error:* {currentTime}',
     [Language.ENGLISH]: '❌ *BROADCAST FAILED*\n\n🚨 *ERROR DURING BROADCAST!*\n\n⚠️ *Error Details:*\n• {errorMessage}\n\n🔄 *Solutions:*\n• Check internet connection\n• Try with shorter message\n• Try again in a few minutes\n• Report to developer if error persists\n\n⏰ *Error time:* {currentTime}'
+  },
+
+  // SafeBroadcast command
+  'safebroadcast.help': {
+    [Language.INDONESIAN]: '📢 *SAFE BROADCAST COMMAND*\n\n*Penggunaan:*\n`safebroadcast <pesan> [level]`\n\n*Level Filter:*\n• `all` - Semua pengguna (default)\n• `free` - Hanya pengguna Free\n• `premium` - Hanya pengguna Premium\n• `admin` - Hanya Admin\n\n*Fitur Anti-Spam:*\n• 🛡️ Rate limiting adaptif\n• 🕵️ Deteksi konten spam\n• ✅ Validasi recipient otomatis\n• 📊 Monitoring real-time\n• 🚫 Auto-stop jika terdeteksi spam\n\n*Contoh:*\n• `safebroadcast Halo semua!`\n• `safebroadcast Pesan premium premium`\n\n⚠️ *Hanya untuk Owner*',
+    [Language.ENGLISH]: '📢 *SAFE BROADCAST COMMAND*\n\n*Usage:*\n`safebroadcast <message> [level]`\n\n*Level Filters:*\n• `all` - All users (default)\n• `free` - Free users only\n• `premium` - Premium users only\n• `admin` - Admin users only\n\n*Anti-Spam Features:*\n• 🛡️ Adaptive rate limiting\n• 🕵️ Spam content detection\n• ✅ Automatic recipient validation\n• 📊 Real-time monitoring\n• 🚫 Auto-stop if spam detected\n\n*Examples:*\n• `safebroadcast Hello everyone!`\n• `safebroadcast Premium message premium`\n\n⚠️ *Owner Only*'
+  },
+  'safebroadcast.spam_detected': {
+    [Language.INDONESIAN]: '⚠️ *Pesan Terdeteksi Sebagai Spam*\n\nPesan Anda mengandung konten yang berisiko tinggi terdeteksi sebagai spam oleh WhatsApp.\n\n*Alasan:*\n• Terlalu banyak kata kunci promosi\n• Format pesan tidak natural\n• Mengandung URL atau link\n\n*Saran:* Ubah pesan agar lebih personal dan natural.',
+    [Language.ENGLISH]: '⚠️ *Message Detected as Spam*\n\nYour message contains content that has a high risk of being detected as spam by WhatsApp.\n\n*Reasons:*\n• Too many promotional keywords\n• Unnatural message format\n• Contains URLs or links\n\n*Suggestion:* Modify the message to be more personal and natural.'
+  },
+  'safebroadcast.confirmation': {
+    [Language.INDONESIAN]: '📢 *SAFE BROADCAST CONFIRMATION*\n\n📝 *Preview Pesan:*\n```{previewMessage}```\n\n📊 *Detail Broadcast:*\n🎯 *Target:* {levelFilter}\n👥 *Jumlah penerima:* {userCount} pengguna\n📦 *Jumlah batch:* {batches} batch\n👤 *Per batch:* {batchSize} pengguna\n⏱️ *Estimasi waktu:* ~{estimatedTime} menit\n🛡️ *Delay per pesan:* {delay} detik\n📏 *Panjang pesan:* {messageLength} karakter\n\n⚠️ *PROTEKSI ANTI-SPAM AKTIF:*\n• Rate limiting dengan delay adaptif\n• Validasi recipient otomatis\n• Error handling dengan auto-throttle\n• Monitoring real-time\n\n🚀 *Broadcast akan dimulai dalam 10 detik...*\n_Kirim pesan apapun untuk membatalkan_',
+    [Language.ENGLISH]: '📢 *SAFE BROADCAST CONFIRMATION*\n\n📝 *Message Preview:*\n```{previewMessage}```\n\n📊 *Broadcast Details:*\n🎯 *Target:* {levelFilter}\n👥 *Recipients:* {userCount} users\n📦 *Batches:* {batches} batches\n👤 *Per batch:* {batchSize} users\n⏱️ *Estimated time:* ~{estimatedTime} minutes\n🛡️ *Delay per message:* {delay} seconds\n📏 *Message length:* {messageLength} characters\n\n⚠️ *ANTI-SPAM PROTECTION ACTIVE:*\n• Rate limiting with adaptive delay\n• Automatic recipient validation\n• Error handling with auto-throttle\n• Real-time monitoring\n\n🚀 *Broadcast will start in 10 seconds...*\n_Send any message to cancel_'
+  },
+  'safebroadcast.starting': {
+    [Language.INDONESIAN]: '🚀 *SAFE BROADCAST DIMULAI*\n\n📊 Target: {userCount} pengguna dalam {batches} batch\n🛡️ Anti-spam protection: AKTIF\n⏰ Waktu mulai: {currentTime}\n\n_Progress akan diupdate setiap batch..._',
+    [Language.ENGLISH]: '🚀 *SAFE BROADCAST STARTED*\n\n📊 Target: {userCount} users in {batches} batches\n🛡️ Anti-spam protection: ACTIVE\n⏰ Start time: {currentTime}\n\n_Progress will be updated every batch..._'
+  },
+  'safebroadcast.spam_alert': {
+    [Language.INDONESIAN]: '🚨 *SPAM ALERT TERDETEKSI!*\n\nBot mendeteksi pesan terblokir sebagai spam.\nBroadcast dihentikan untuk melindungi akun.\n\n📊 *Progress saat ini:*\n✅ Berhasil: {successCount}\n❌ Gagal: {failedCount}\n🚫 Diblokir: {blockedCount}\n\n⏰ Waktu: {currentTime}',
+    [Language.ENGLISH]: '🚨 *SPAM ALERT DETECTED!*\n\nBot detected messages blocked as spam.\nBroadcast stopped to protect account.\n\n📊 *Current progress:*\n✅ Success: {successCount}\n❌ Failed: {failedCount}\n🚫 Blocked: {blockedCount}\n\n⏰ Time: {currentTime}'
+  },
+  'safebroadcast.batch_progress': {
+    [Language.INDONESIAN]: '📊 *PROGRESS BATCH {currentBatch}/{totalBatches}*\n\n🎯 Progress: {progressPercent}%\n✅ Berhasil: {successCount}\n❌ Gagal: {failedCount}\n🚫 Diblokir: {blockedCount}\n⏭️ Dilewati: {skippedCount}\n⏱️ Elapsed: {elapsedTime}s\n\n{nextBatchMessage}',
+    [Language.ENGLISH]: '📊 *BATCH PROGRESS {currentBatch}/{totalBatches}*\n\n🎯 Progress: {progressPercent}%\n✅ Success: {successCount}\n❌ Failed: {failedCount}\n🚫 Blocked: {blockedCount}\n⏭️ Skipped: {skippedCount}\n⏱️ Elapsed: {elapsedTime}s\n\n{nextBatchMessage}'
+  },
+  'safebroadcast.summary': {
+    [Language.INDONESIAN]: '📊 *SAFE BROADCAST SELESAI*\n\n🎯 *Target:* {levelFilter} ({userCount} pengguna)\n✅ *Berhasil:* {successCount} ({successRate}%)\n❌ *Gagal:* {failedCount}\n🚫 *Diblokir:* {blockedCount}\n⏭️ *Dilewati:* {skippedCount}\n⏱️ *Total waktu:* {totalTime}s ({totalMinutes} menit)\n📈 *Rate:* {messageRate} pesan/menit\n🛡️ *Status:* {safetyStatus}\n\n⏰ *Selesai:* {endTime}\n\n{failedInfo}{blockedInfo}{skippedInfo}\n📝 *Rekomendasi:*\n{recommendations}',
+    [Language.ENGLISH]: '📊 *SAFE BROADCAST COMPLETED*\n\n🎯 *Target:* {levelFilter} ({userCount} users)\n✅ *Success:* {successCount} ({successRate}%)\n❌ *Failed:* {failedCount}\n🚫 *Blocked:* {blockedCount}\n⏭️ *Skipped:* {skippedCount}\n⏱️ *Total time:* {totalTime}s ({totalMinutes} minutes)\n📈 *Rate:* {messageRate} messages/minute\n🛡️ *Status:* {safetyStatus}\n\n⏰ *Completed:* {endTime}\n\n{failedInfo}{blockedInfo}{skippedInfo}\n📝 *Recommendations:*\n{recommendations}'
+  },
+  'safebroadcast.error': {
+    [Language.INDONESIAN]: '❌ *Error dalam Safe Broadcast*\n\n🚨 Terjadi kesalahan: {errorMessage}\n⏰ Waktu: {currentTime}\n\n🔧 *Saran:*\n• Coba lagi dalam beberapa menit\n• Periksa koneksi internet\n• Hubungi developer jika masalah berlanjut',
+    [Language.ENGLISH]: '❌ *Safe Broadcast Error*\n\n🚨 Error occurred: {errorMessage}\n⏰ Time: {currentTime}\n\n🔧 *Suggestions:*\n• Try again in a few minutes\n• Check internet connection\n• Contact developer if problem persists'  },
+
+  // Common status messages for broadcasts and other operations
+  'common.safe_status': {
+    [Language.INDONESIAN]: '🟢 AMAN',
+    [Language.ENGLISH]: '🟢 SAFE'
+  },
+  'common.warning_status': {
+    [Language.INDONESIAN]: '🟡 PERINGATAN',
+    [Language.ENGLISH]: '🟡 WARNING'
+  },
+  'common.danger_status': {
+    [Language.INDONESIAN]: '🔴 BAHAYA',
+    [Language.ENGLISH]: '🔴 DANGER'
+  },
+  'common.failed': {
+    [Language.INDONESIAN]: 'Gagal',
+    [Language.ENGLISH]: 'Failed'
+  },
+  'common.blocked': {
+    [Language.INDONESIAN]: 'Diblokir',
+    [Language.ENGLISH]: 'Blocked'
+  },
+  'common.skipped': {
+    [Language.INDONESIAN]: 'Dilewati',
+    [Language.ENGLISH]: 'Skipped'
+  },
+  'common.others': {
+    [Language.INDONESIAN]: 'Lainnya',
+    [Language.ENGLISH]: 'Others'
+  },
+  'common.waiting_next_batch': {
+    [Language.INDONESIAN]: '⏳ Menunggu batch berikutnya...',
+    [Language.ENGLISH]: '⏳ Waiting for next batch...'
+  },
+  'common.almost_finished': {
+    [Language.INDONESIAN]: '🏁 Hampir selesai...',
+    [Language.ENGLISH]: '🏁 Almost finished...'
+  },
+  'safebroadcast.recommendations_warning': {
+    [Language.INDONESIAN]: '⚠️ Tingkat kegagalan tinggi. Kurangi kecepatan broadcast dan gunakan pesan yang lebih personal.',
+    [Language.ENGLISH]: '⚠️ High failure rate detected. Reduce broadcast speed and use more personalized messages.'
+  },
+  'safebroadcast.recommendations_safe': {
+    [Language.INDONESIAN]: '✅ Broadcast berjalan dengan baik. Rate dan konten aman untuk WhatsApp.',
+    [Language.ENGLISH]: '✅ Broadcast is running well. Rate and content are safe for WhatsApp.'
   },
 
   // ClearAll command
