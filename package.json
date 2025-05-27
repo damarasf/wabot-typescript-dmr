@@ -57,13 +57,14 @@
     "tslib": "^2.8.1",
     "typescript": "^5.8.3",
     "winston": "^3.17.0"
-  },
+  },  
   "devDependencies": {
     "@types/sequelize": "^4.28.20",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "eslint": "^9.27.0",
-    "sequelize-cli": "^6.6.3"
+    "sequelize-cli": "^6.6.3",
+    "typescript": "^5.8.3"
   }
 }
