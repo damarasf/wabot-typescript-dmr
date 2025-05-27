@@ -27,7 +27,7 @@ import { getText } from '../utils/i18n';
 export const restartCommand: Command = {
   name: 'restart',
   aliases: ['reboot', 'reloadbot'],
-  description: 'Restart bot dengan aman (khusus owner)',
+  description: 'Restart bot (owner only)',
   category: 'Owner',
   cooldown: 10,
   usage: 'restart [confirm]',

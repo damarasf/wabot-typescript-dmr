@@ -28,7 +28,7 @@ import { getText } from '../utils/i18n';
 export const broadcastCommand: Command = {
   name: 'broadcast',
   aliases: ['bc', 'send'],
-  description: 'Broadcast pesan ke pengguna terdaftar (khusus owner)',
+  description: 'Broadcast pesan (owner only)',
   category: 'Owner',
   cooldown: 30,
   usage: 'broadcast <pesan> [level]',

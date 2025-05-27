@@ -16,7 +16,7 @@ import logger from '../utils/logger';
 const profile: Command = {
   name: 'profile',
   aliases: ['profil', 'me', 'user'],
-  description: 'Melihat profil pengguna',
+  description: 'Lihat profil user',
   usage: '!profile',
   example: '!profile',
   category: 'Umum',

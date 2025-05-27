@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 const language: Command = {
   name: 'language',
   aliases: ['lang', 'bahasa'],
-  description: 'Mengubah bahasa bot / Change bot language',
+  description: 'Ubah bahasa bot',
   usage: '!language [id/en]',
   example: '!language en',
   category: 'Umum',

@@ -3,7 +3,7 @@ import { User, UserLevel, Language } from '../database/models';
 import { Command } from '../middlewares/commandParser';
 import { getCommandsByCategory, getCommand } from '../handlers/commandHandler';
 import { formatHelpCommand } from '../utils/formatter';
-import { getText } from '../utils/i18n';
+import { getText, getCategoryName, getCommandDescription } from '../utils/i18n';
 import config from '../utils/config';
 import logger from '../utils/logger';
 import { isOwner } from '../utils/phoneUtils';
@@ -16,7 +16,7 @@ import { isOwner } from '../utils/phoneUtils';
 const help: Command = {
   name: 'help',
   aliases: ['menu', 'cmd', 'commands'],
-  description: 'Menampilkan daftar perintah bot',
+  description: 'Lihat daftar perintah',
   usage: '!help [nama perintah]',
   example: '!help register',
   category: 'Umum',
@@ -112,9 +112,8 @@ async function handleSpecificCommandHelp(
         message.id
       );
       return;
-    }
-      // Generate detailed command help
-    const helpText = formatHelpCommand(command);
+    }    // Generate detailed command help
+    const helpText = formatHelpCommand(command, userLanguage);
     logger.success('Sending detailed help for command', { 
       commandName, 
       sender: message.sender.id 
@@ -193,15 +192,14 @@ async function generateGeneralHelpMenu(
       
       // Skip empty categories
       if (availableCommands.length === 0) continue;
-      
-      // Add category header
-      helpMessage += `📂 *${category.toUpperCase()}*\n`;
+        // Add category header
+      helpMessage += `📂 *${getCategoryName(category, userLanguage).toUpperCase()}*\n`;
       
       // Add each command with icon, sorted alphabetically
       const sortedCommands = [...availableCommands].sort((a, b) => a.name.localeCompare(b.name));
         for (const cmd of sortedCommands) {
         const icon = getCommandIcon(category);
-        helpMessage += `${icon} \`${cmd.name}\` - ${cmd.description}\n`;
+        helpMessage += `${icon} \`${cmd.name}\` - ${getCommandDescription(cmd.name, userLanguage)}\n`;
         totalCommands++;
       }
       

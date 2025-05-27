@@ -16,7 +16,7 @@ import { isOwner } from '../utils/phoneUtils';
 const limit: Command = {
   name: 'limit',
   aliases: ['limits', 'usage', 'stat'],
-  description: 'Melihat limit penggunaan fitur',
+  description: 'Cek limit penggunaan',
   usage: '!limit',
   example: '!limit',
   category: 'Umum',

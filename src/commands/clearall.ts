@@ -14,7 +14,7 @@ import { getText } from '../utils/i18n';
 export const clearallCommand: Command = {
   name: 'clearall',
   aliases: ['clearchat', 'cleanchat', 'clearchats'],
-  description: 'Hapus semua riwayat chat WhatsApp (khusus owner)',
+  description: 'Hapus semua chat (owner only)',
   category: 'Owner',
   cooldown: 30,
   usage: '!clearall CONFIRM',

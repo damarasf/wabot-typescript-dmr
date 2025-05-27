@@ -26,7 +26,7 @@ import { getText } from '../utils/i18n';
 export const resetlimitCommand: Command = {
   name: 'resetlimit',
   aliases: ['rl', 'reset'],
-  description: 'Reset limit penggunaan fitur untuk pengguna tertentu atau semua pengguna',
+  description: 'Reset limit penggunaan user',
   category: 'Admin',
   cooldown: 5,
   usage: 'resetlimit [all/@user/phone]',

@@ -16,7 +16,7 @@ import { getText } from '../utils/i18n';
 const setlimit: Command = {
   name: 'setlimit',
   aliases: ['customlimit', 'limit'],
-  description: 'Set limit custom untuk pengguna pada fitur tertentu',
+  description: 'Set limit custom user',
   usage: '!setlimit @user [feature] [jumlah]',
   example: '!setlimit @user n8n 100',
   category: 'Admin',

@@ -14,7 +14,7 @@ import logger from '../utils/logger';
  */
 const n8n: Command = {
   name: 'n8n',
-  description: 'Menjalankan workflow N8N',
+  description: 'Jalankan workflow N8N',
   usage: '!n8n [workflow_id] [parameter]',
   example: '!n8n translate Hello World',
   category: 'N8N',

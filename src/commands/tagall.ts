@@ -15,7 +15,7 @@ import { getText, formatDateTime } from '../utils/i18n';
 const tagall: Command = {
   name: 'tagall',
   aliases: ['everyone', 'all', 'semua'],
-  description: 'Menandai semua anggota grup',
+  description: 'Tag semua member grup',
   usage: '!tagall [pesan]',
   example: '!tagall Ayo kumpul sekarang',
   category: 'Grup',
