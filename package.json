@@ -17,7 +17,16 @@
     "test": "node test/test-logger.js",
     "test:logging": "node test/test-logging.js",
     "test-setup": "ts-node test-setup.ts",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "docker:build": "docker build -t wabot-app .",
+    "docker:run": "docker run -p 3000:3000 wabot-app",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f wabot",
+    "docker:restart": "docker-compose restart wabot",
+    "health": "node -e \"console.log('Health check passed')\"",
+    "prod:build": "npm run build && npm prune --production",
+    "prod:start": "NODE_ENV=production npm start"
   },
   "keywords": [
     "whatsapp",
