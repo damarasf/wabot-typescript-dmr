@@ -15,7 +15,7 @@ import { getText, formatDateTime } from '../utils/i18n';
 const reminder: Command = {
   name: 'reminder',
   aliases: ['remind', 'ingatkan'],
-  description: 'Membuat pengingat personal atau grup',
+  description: 'Buat pengingat otomatis',
   usage: '!reminder [waktu] [pesan]',
   example: '!reminder 30m Jangan lupa makan siang',
   category: 'Utilitas',

@@ -15,7 +15,7 @@ import { getText } from '../utils/i18n';
 const setadmin: Command = {
   name: 'setadmin',
   aliases: ['makeadmin', 'admin'],
-  description: 'Jadikan pengguna sebagai Admin',
+  description: 'Jadikan user sebagai Admin',
   usage: '!setadmin @user',
   example: '!setadmin @user',
   category: 'Owner',

@@ -82,45 +82,42 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: 'Unknown',
     [Language.ENGLISH]: 'Unknown'
   },
-
   // Common responses
   'command.success': {
-    [Language.INDONESIAN]: '✅ Perintah berhasil dijalankan!',
-    [Language.ENGLISH]: '✅ Command executed successfully!'
+    [Language.INDONESIAN]: 'Berhasil! Perintah sudah dijalankan 👍',
+    [Language.ENGLISH]: 'Success! Command executed 👍'
   },
   'command.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat menjalankan perintah.',
-    [Language.ENGLISH]: '❌ An error occurred while executing the command.'
+    [Language.INDONESIAN]: 'Aduh, ada error nih! Coba sekali lagi ya 🔧',
+    [Language.ENGLISH]: 'Oops, there was an error! Please try again 🔧'
   },
   'command.not_found': {
-    [Language.INDONESIAN]: '❌ Perintah tidak ditemukan. Ketik !help untuk melihat daftar perintah.',
-    [Language.ENGLISH]: '❌ Command not found. Type !help to see available commands.'
-  },
-  'user.not_registered': {
-    [Language.INDONESIAN]: '⚠️ Anda belum terdaftar. Ketik !register untuk mendaftar.',
-    [Language.ENGLISH]: '⚠️ You are not registered. Type !register to register.'
+    [Language.INDONESIAN]: 'Perintah tidak ditemukan. Ketik "help" untuk lihat semua perintah ya! 📋',
+    [Language.ENGLISH]: 'Command not found. Type "help" to see all commands! 📋'
+  },'user.not_registered': {
+    [Language.INDONESIAN]: 'Halo! Kamu belum terdaftar nih. Yuk daftar dulu dengan ketik "register" 👋',
+    [Language.ENGLISH]: 'Hello! You are not registered yet. Please register first by typing "register" 👋'
   },
   'user.no_permission': {
-    [Language.INDONESIAN]: '🚫 Anda tidak memiliki izin untuk menggunakan perintah ini.',
-    [Language.ENGLISH]: '🚫 You do not have permission to use this command.'
+    [Language.INDONESIAN]: 'Ups! Kamu belum punya akses untuk fitur ini. Upgrade dulu ya! 🔒',
+    [Language.ENGLISH]: 'Oops! You don\'t have access to this feature yet. Please upgrade first! 🔒'
   },
   'user.limit_reached': {
-    [Language.INDONESIAN]: '⏰ Anda telah mencapai batas penggunaan untuk fitur ini.',
-    [Language.ENGLISH]: '⏰ You have reached the usage limit for this feature.'
+    [Language.INDONESIAN]: 'Limit penggunaan kamu sudah habis untuk hari ini. Coba lagi besok ya! ⏰',
+    [Language.ENGLISH]: 'Your usage limit is reached for today. Please try again tomorrow! ⏰'
   },
-  
-  // Registration
+    // Registration
   'register.already_registered': {
-    [Language.INDONESIAN]: 'ℹ️ Anda sudah terdaftar sebagai pengguna bot.',
-    [Language.ENGLISH]: 'ℹ️ You are already registered as a bot user.'
+    [Language.INDONESIAN]: 'Halo! Kamu sudah terdaftar sebagai pengguna bot kami 😊',
+    [Language.ENGLISH]: 'Hello! You are already registered as our bot user 😊'
   },
   'register.success': {
-    [Language.INDONESIAN]: '🎉 Pendaftaran berhasil! Selamat datang di bot WhatsApp kami.',
-    [Language.ENGLISH]: '🎉 Registration successful! Welcome to our WhatsApp bot.'
+    [Language.INDONESIAN]: 'Selamat datang! Pendaftaran berhasil 🎉 Kamu sekarang bisa menggunakan semua fitur bot.',
+    [Language.ENGLISH]: 'Welcome! Registration successful 🎉 You can now use all bot features.'
   },
   'register.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat mendaftarkan pengguna.',
-    [Language.ENGLISH]: '❌ An error occurred while registering user.'
+    [Language.INDONESIAN]: 'Maaf, terjadi kendala saat mendaftarkan akun kamu. Coba lagi ya! 😅',
+    [Language.ENGLISH]: 'Sorry, there was an issue registering your account. Please try again! 😅'
   },
   
   // Register command additional translations
@@ -140,55 +137,54 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: 'Tips: Gunakan `!profile` untuk melihat informasi lengkap akun Anda.',
     [Language.ENGLISH]: 'Tips: Use `!profile` to view your complete account information.'
   },
-
   // Register welcome message
   'register.welcome_title': {
-    [Language.INDONESIAN]: '🎉 *Pendaftaran Berhasil!*',
-    [Language.ENGLISH]: '🎉 *Registration Successful!*'
+    [Language.INDONESIAN]: 'Selamat datang! 🎉',
+    [Language.ENGLISH]: 'Welcome! 🎉'
   },
   'register.welcome_greeting': {
-    [Language.INDONESIAN]: 'Selamat datang *{displayName}*! Anda telah berhasil terdaftar sebagai pengguna {botName}.',
-    [Language.ENGLISH]: 'Welcome *{displayName}*! You have been successfully registered as a user of {botName}.'
+    [Language.INDONESIAN]: 'Hai {displayName}! Kamu berhasil terdaftar di {botName}. Senang bisa bantu kamu! 😊',
+    [Language.ENGLISH]: 'Hi {displayName}! You\'ve successfully registered with {botName}. Happy to help you! 😊'
   },
   'register.account_info_title': {
-    [Language.INDONESIAN]: '📋 *Informasi Akun:*',
-    [Language.ENGLISH]: '📋 *Account Information:*'
+    [Language.INDONESIAN]: 'Info Akun Kamu:',
+    [Language.ENGLISH]: 'Your Account Info:'
   },
   'register.phone_number_label': {
-    [Language.INDONESIAN]: '📱 *Nomor:*',
-    [Language.ENGLISH]: '📱 *Number:*'
+    [Language.INDONESIAN]: '📱 Nomor',
+    [Language.ENGLISH]: '📱 Number'
   },
   'register.level_info_label': {
-    [Language.INDONESIAN]: '🏷️ *Level:*',
-    [Language.ENGLISH]: '🏷️ *Level:*'
+    [Language.INDONESIAN]: '⭐ Level',
+    [Language.ENGLISH]: '⭐ Level'
   },
   'register.registered_date_label': {
-    [Language.INDONESIAN]: '📅 *Terdaftar:*',
-    [Language.ENGLISH]: '📅 *Registered:*'
+    [Language.INDONESIAN]: '📅 Bergabung',
+    [Language.ENGLISH]: '📅 Joined'
   },
   'register.features_title': {
-    [Language.INDONESIAN]: '🚀 *Fitur yang Tersedia:*',
-    [Language.ENGLISH]: '🚀 *Available Features:*'
+    [Language.INDONESIAN]: 'Yang bisa kamu lakukan:',
+    [Language.ENGLISH]: 'What you can do:'
   },
   'register.feature_basic_commands': {
-    [Language.INDONESIAN]: '• Akses ke semua perintah dasar',
-    [Language.ENGLISH]: '• Access to all basic commands'
+    [Language.INDONESIAN]: '✨ Akses semua perintah dasar',
+    [Language.ENGLISH]: '✨ Access all basic commands'
   },
   'register.feature_n8n_integration': {
-    [Language.INDONESIAN]: '• Integrasi dengan N8N workflows',
-    [Language.ENGLISH]: '• Integration with N8N workflows'
+    [Language.INDONESIAN]: '🔗 Pakai workflow N8N',
+    [Language.ENGLISH]: '🔗 Use N8N workflows'
   },
   'register.feature_reminder_settings': {
-    [Language.INDONESIAN]: '• Pengaturan reminder',
-    [Language.ENGLISH]: '• Reminder settings'
+    [Language.INDONESIAN]: '⏰ Atur reminder otomatis',
+    [Language.ENGLISH]: '⏰ Set automatic reminders'
   },
   'register.feature_more': {
-    [Language.INDONESIAN]: '• Dan masih banyak lagi!',
-    [Language.ENGLISH]: '• And much more!'
+    [Language.INDONESIAN]: '🚀 Dan masih banyak lagi!',
+    [Language.ENGLISH]: '🚀 And much more!'
   },
   'register.help_tip': {
-    [Language.INDONESIAN]: '💡 *Tips:* Ketik `!help` untuk melihat semua perintah yang tersedia.',
-    [Language.ENGLISH]: '💡 *Tips:* Type `!help` to see all available commands.'
+    [Language.INDONESIAN]: 'Tips: Ketik "help" untuk lihat semua perintah yang tersedia! 💡',
+    [Language.ENGLISH]: 'Tip: Type "help" to see all available commands! 💡'
   },
 
   // Register follow-up message
@@ -241,28 +237,28 @@ const translations: LanguageData = {
   'register.error_footer': {
     [Language.INDONESIAN]: '_Silakan coba lagi nanti atau hubungi administrator._',
     [Language.ENGLISH]: '_Please try again later or contact administrator._'
-  },
-  'language.current': {
-    [Language.INDONESIAN]: '🌐 Bahasa saat ini: Bahasa Indonesia',
+  },  'language.current': {
+    [Language.INDONESIAN]: '🌐 Bahasa sekarang: Bahasa Indonesia',
     [Language.ENGLISH]: '🌐 Current language: English'
   },
   'language.changed.to_id': {
-    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke Bahasa Indonesia!',
-    [Language.ENGLISH]: '✅ Language successfully changed to Indonesian!'
+    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke Bahasa Indonesia! 🇮🇩',
+    [Language.ENGLISH]: '✅ Language successfully changed to Indonesian! 🇮🇩'
   },
   'language.changed.to_en': {
-    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke Bahasa Inggris!',
-    [Language.ENGLISH]: '✅ Language successfully changed to English!'
+    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke English! 🇺🇸',
+    [Language.ENGLISH]: '✅ Language successfully changed to English! 🇺🇸'
   },
   'language.invalid': {
-    [Language.INDONESIAN]: '❌ Bahasa tidak valid. Pilihan: id (Indonesia) atau en (English)',
-    [Language.ENGLISH]: '❌ Invalid language. Options: id (Indonesian) or en (English)'
-  },  'language.help': {
-    [Language.INDONESIAN]: '🌐 Gunakan: !language [id/en]\n• id = Bahasa Indonesia\n• en = English',
-    [Language.ENGLISH]: '🌐 Usage: !language [id/en]\n• id = Indonesian\n• en = English'
+    [Language.INDONESIAN]: '❌ Bahasa nggak valid nih. Pilihan: id (Indonesia) atau en (English) 🌐',
+    [Language.ENGLISH]: '❌ Invalid language. Options: id (Indonesian) or en (English) 🌐'
+  },
+  'language.help': {
+    [Language.INDONESIAN]: '🌐 Cara pakai: !language [id/en]\n• id = Bahasa Indonesia 🇮🇩\n• en = English 🇺🇸',
+    [Language.ENGLISH]: '🌐 Usage: !language [id/en]\n• id = Indonesian 🇮🇩\n• en = English 🇺🇸'
   },
   'language.info_text': {
-    [Language.INDONESIAN]: '📱 Semua respon bot sekarang akan menggunakan Bahasa Indonesia.\n💡 Ketik !help untuk melihat menu dalam bahasa baru.',
+    [Language.INDONESIAN]: '📱 Semua respon bot sekarang pakai Bahasa Indonesia.\n💡 Ketik !help untuk lihat menu dalam bahasa baru.',
     [Language.ENGLISH]: '📱 All bot responses will now use English.\n💡 Type !help to see the menu in your new language.'
   },
   'language.settings_title': {
@@ -270,11 +266,10 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '🌐 Language Settings'
   },
   'language.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat mengubah bahasa. Silakan coba lagi nanti.',
-    [Language.ENGLISH]: '❌ An error occurred while changing language. Please try again later.'
+    [Language.INDONESIAN]: '❌ Ada error saat ubah bahasa. Coba lagi nanti ya! 🔄',
+    [Language.ENGLISH]: '❌ Error changing language. Please try again later! 🔄'
   },
-  
-  // Help command
+    // Help command
   'help.title': {
     [Language.INDONESIAN]: '🤖 Menu Bantuan',
     [Language.ENGLISH]: '🤖 Help Menu'
@@ -284,7 +279,7 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '👤 Status'
   },
   'help.not_registered': {
-    [Language.INDONESIAN]: 'Belum Terdaftar',
+    [Language.INDONESIAN]: 'Belum Daftar',
     [Language.ENGLISH]: 'Not Registered'
   },
   'help.prefix': {
@@ -292,24 +287,27 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '🎯 Prefix'
   },
   'help.register_notice': {
-    [Language.INDONESIAN]: '⚠️ Daftar dulu untuk akses penuh!\nKetik `!register` untuk mendaftar.',
+    [Language.INDONESIAN]: '⚠️ Daftar dulu ya buat akses penuh!\nKetik `!register` untuk daftar.',
     [Language.ENGLISH]: '⚠️ Register first for full access!\nType `!register` to register.'
   },
   'help.total_commands': {
-    [Language.INDONESIAN]: '🔢 Total Perintah Tersedia',
-    [Language.ENGLISH]: '🔢 Total Available Commands'
+    [Language.INDONESIAN]: '🔢 Total Perintah',
+    [Language.ENGLISH]: '🔢 Total Commands'
   },
   'help.tips': {
     [Language.INDONESIAN]: '💡 Tips',
     [Language.ENGLISH]: '💡 Tips'
+  },  'help.tip_detail': {
+    [Language.INDONESIAN]: '• Ketik `!help [perintah]` untuk detail\n• Upgrade ke Premium untuk lebih banyak fitur\n• Jangan lupa pakai prefix !',
+    [Language.ENGLISH]: '• Type `!help [command]` for details\n• Upgrade to Premium for more features\n• Don\'t forget to use prefix !'
   },
-  'help.tip_detail': {
-    [Language.INDONESIAN]: '• Ketik `!help [nama perintah]` untuk detail\n• Upgrade ke Premium untuk akses lebih banyak\n• Gunakan prefix ! sebelum perintah',
-    [Language.ENGLISH]: '• Type `!help [command name]` for details\n• Upgrade to Premium for more access\n• Use prefix ! before commands'
+  'help.tips_header': {
+    [Language.INDONESIAN]: '💡 *Tips Penggunaan*',
+    [Language.ENGLISH]: '💡 *Usage Tips*'
   },
   'help.footer': {
-    [Language.INDONESIAN]: '_Developed with ❤️ for better automation_',
-    [Language.ENGLISH]: '_Developed with ❤️ for better automation_'
+    [Language.INDONESIAN]: '_Dibuat dengan ❤️ untuk otomasi yang lebih baik_',
+    [Language.ENGLISH]: '_Made with ❤️ for better automation_'
   },
   
   // User levels
@@ -332,61 +330,59 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: 'Belum Terdaftar',
     [Language.ENGLISH]: 'Unregistered'
   },
-
   // Profile command
   'profile.title': {
-    [Language.INDONESIAN]: '👤 *PROFIL PENGGUNA*',
-    [Language.ENGLISH]: '👤 *USER PROFILE*'
+    [Language.INDONESIAN]: '👤 *Info Profil Kamu*',
+    [Language.ENGLISH]: '👤 *Your Profile Info*'
   },
   'profile.name': {
     [Language.INDONESIAN]: '📛 *Nama:*',
     [Language.ENGLISH]: '📛 *Name:*'
   },
   'profile.context_group': {
-    [Language.INDONESIAN]: '📍 *Konteks:* Grup',
-    [Language.ENGLISH]: '📍 *Context:* Group'
+    [Language.INDONESIAN]: '📍 *Chat dari:* Grup',
+    [Language.ENGLISH]: '📍 *Chat from:* Group'
   },
   'profile.context_personal': {
-    [Language.INDONESIAN]: '📍 *Konteks:* Chat Personal',
-    [Language.ENGLISH]: '📍 *Context:* Personal Chat'
+    [Language.INDONESIAN]: '📍 *Chat dari:* Personal',
+    [Language.ENGLISH]: '📍 *Chat from:* Personal'
   },
   'profile.access_time': {
-    [Language.INDONESIAN]: '🕐 *Waktu Akses:*',
-    [Language.ENGLISH]: '🕐 *Access Time:*'
+    [Language.INDONESIAN]: '🕐 *Diakses:*',
+    [Language.ENGLISH]: '🕐 *Accessed:*'
   },
   'profile.owner_status': {
-    [Language.INDONESIAN]: '👑 *Status:* Bot Owner',
+    [Language.INDONESIAN]: '👑 *Status:* Owner Bot',
     [Language.ENGLISH]: '👑 *Status:* Bot Owner'
   },
   'profile.help_footer': {
-    [Language.INDONESIAN]: '_Gunakan !help untuk melihat perintah yang tersedia_',
-    [Language.ENGLISH]: '_Use !help to see available commands_'
+    [Language.INDONESIAN]: '_Tips: Ketik !help untuk lihat semua perintah yang bisa kamu pakai 💡_',
+    [Language.ENGLISH]: '_Tip: Type !help to see all commands you can use 💡_'
   },
   'profile.error': {
-    [Language.INDONESIAN]: 'Terjadi kesalahan saat mendapatkan profil pengguna.',
-    [Language.ENGLISH]: 'An error occurred while getting user profile.'
+    [Language.INDONESIAN]: 'Aduh, gagal ambil profil kamu. Coba lagi ya! 😅',
+    [Language.ENGLISH]: 'Oops, failed to get your profile. Please try again! 😅'
   },
   'profile.database_error': {
-    [Language.INDONESIAN]: 'Terjadi kesalahan database saat mengambil profil Anda.',
-    [Language.ENGLISH]: 'A database error occurred while retrieving your profile.'
+    [Language.INDONESIAN]: 'Ada masalah dengan database nih. Coba lagi sebentar ya! 🔧',
+    [Language.ENGLISH]: 'There\'s a database issue. Please try again in a moment! 🔧'
   },
   'profile.format_error': {
-    [Language.INDONESIAN]: 'Terjadi kesalahan format data profil.',
-    [Language.ENGLISH]: 'A profile data format error occurred.'
+    [Language.INDONESIAN]: 'Ada error format data profil. Tim kami akan perbaiki! 🛠️',
+    [Language.ENGLISH]: 'Profile data format error. Our team will fix it! 🛠️'
   },
-
   // Help command detailed messages
   'help.command_not_found': {
-    [Language.INDONESIAN]: '❌ Perintah tidak ditemukan atau Anda tidak memiliki izin untuk mengaksesnya.',
-    [Language.ENGLISH]: '❌ Command not found or you do not have permission to access it.'
+    [Language.INDONESIAN]: '❌ Perintah tidak ditemukan atau kamu belum punya akses. Cek lagi ya! 🔍',
+    [Language.ENGLISH]: '❌ Command not found or you don\'t have access yet. Please check again! 🔍'
   },
   'help.command_detail': {
-    [Language.INDONESIAN]: '📋 *DETAIL PERINTAH*',
-    [Language.ENGLISH]: '📋 *COMMAND DETAILS*'
+    [Language.INDONESIAN]: '📋 *Detail Perintah*',
+    [Language.ENGLISH]: '📋 *Command Details*'
   },
   'help.usage': {
-    [Language.INDONESIAN]: '📝 *Penggunaan:*',
-    [Language.ENGLISH]: '📝 *Usage:*'
+    [Language.INDONESIAN]: '📝 *Cara pakai:*',
+    [Language.ENGLISH]: '📝 *How to use:*'
   },
   'help.example': {
     [Language.INDONESIAN]: '💡 *Contoh:*',
@@ -397,8 +393,8 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '🔗 *Aliases:*'
   },
   'help.level_required': {
-    [Language.INDONESIAN]: '🔒 *Level Minimum:*',
-    [Language.ENGLISH]: '🔒 *Minimum Level:*'
+    [Language.INDONESIAN]: '🔒 *Level minimal:*',
+    [Language.ENGLISH]: '🔒 *Minimum level:*'
   },
   'help.cooldown': {
     [Language.INDONESIAN]: '⏱️ *Cooldown:*',
@@ -413,18 +409,79 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '📂 *Category:*'
   },
   'help.commands': {
-    [Language.INDONESIAN]: '⚡ *Perintah yang Tersedia:*',
-    [Language.ENGLISH]: '⚡ *Available Commands:*'
+    [Language.INDONESIAN]: '⚡ *Perintah yang bisa kamu pakai:*',
+    [Language.ENGLISH]: '⚡ *Commands you can use:*'
   },
 
+  // Command descriptions
+  'command.desc.help': {
+    [Language.INDONESIAN]: 'Menampilkan daftar perintah bot',
+    [Language.ENGLISH]: 'Display bot command list'
+  },
+  'command.desc.register': {
+    [Language.INDONESIAN]: 'Mendaftar sebagai pengguna bot',
+    [Language.ENGLISH]: 'Register as a bot user'
+  },
+  'command.desc.profile': {
+    [Language.INDONESIAN]: 'Melihat profil pengguna',
+    [Language.ENGLISH]: 'View user profile'
+  },
+  'command.desc.language': {
+    [Language.INDONESIAN]: 'Mengubah bahasa bot',
+    [Language.ENGLISH]: 'Change bot language'
+  },
+  'command.desc.limit': {
+    [Language.INDONESIAN]: 'Melihat batas penggunaan',
+    [Language.ENGLISH]: 'View usage limits'
+  },
+  'command.desc.n8n': {
+    [Language.INDONESIAN]: 'Menjalankan workflow N8N',
+    [Language.ENGLISH]: 'Execute N8N workflow'
+  },
+  'command.desc.reminder': {
+    [Language.INDONESIAN]: 'Membuat pengingat',
+    [Language.ENGLISH]: 'Create reminder'
+  },
+  'command.desc.tagall': {
+    [Language.INDONESIAN]: 'Menandai semua anggota grup',
+    [Language.ENGLISH]: 'Tag all group members'
+  },
+  'command.desc.setlimit': {
+    [Language.INDONESIAN]: 'Mengatur batas penggunaan pengguna',
+    [Language.ENGLISH]: 'Set user usage limits'
+  },
+  'command.desc.resetlimit': {
+    [Language.INDONESIAN]: 'Reset batas penggunaan pengguna',
+    [Language.ENGLISH]: 'Reset user usage limits'
+  },
+  'command.desc.setadmin': {
+    [Language.INDONESIAN]: 'Mengatur admin bot',
+    [Language.ENGLISH]: 'Set bot admin'
+  },
+  'command.desc.upgrade': {
+    [Language.INDONESIAN]: 'Upgrade level pengguna',
+    [Language.ENGLISH]: 'Upgrade user level'
+  },
+  'command.desc.broadcast': {
+    [Language.INDONESIAN]: 'Broadcast pesan ke semua pengguna',
+    [Language.ENGLISH]: 'Broadcast message to all users'
+  },
+  'command.desc.clearall': {
+    [Language.INDONESIAN]: 'Hapus semua riwayat chat',
+    [Language.ENGLISH]: 'Clear all chat history'
+  },
+  'command.desc.restart': {
+    [Language.INDONESIAN]: 'Restart bot',
+    [Language.ENGLISH]: 'Restart bot'
+  },
   // Limit command
   'limit.title': {
-    [Language.INDONESIAN]: '📊 *STATUS BATAS PENGGUNAAN*',
-    [Language.ENGLISH]: '📊 *USAGE LIMIT STATUS*'
+    [Language.INDONESIAN]: '📊 *Status Limit Kamu*',
+    [Language.ENGLISH]: '📊 *Your Limit Status*'
   },
   'limit.info_title': {
-    [Language.INDONESIAN]: '*📊 INFORMASI LIMIT*',
-    [Language.ENGLISH]: '*📊 LIMIT INFORMATION*'
+    [Language.INDONESIAN]: '*📊 Info Limit*',
+    [Language.ENGLISH]: '*📊 Limit Info*'
   },
   'limit.user_label': {
     [Language.INDONESIAN]: '👤 *Pengguna:*',
@@ -481,21 +538,20 @@ const translations: LanguageData = {
   'limit.type_free': {
     [Language.INDONESIAN]: 'Free',
     [Language.ENGLISH]: 'Free'
-  },
-  'limit.reset_auto_label': {
-    [Language.INDONESIAN]: '⏱️ *Reset Otomatis:*',
-    [Language.ENGLISH]: '⏱️ *Auto Reset:*'
+  },  'limit.reset_auto_label': {
+    [Language.INDONESIAN]: '⏱️ *Reset otomatis:*',
+    [Language.ENGLISH]: '⏱️ *Auto reset:*'
   },
   'limit.reset_time_format': {
-    [Language.INDONESIAN]: '{hours}h lagi (00:00 WIB)',
+    [Language.INDONESIAN]: '{hours}j lagi (00:00 WIB)',
     [Language.ENGLISH]: '{hours}h remaining (00:00 WIB)'
   },
   'limit.upgrade_title': {
-    [Language.INDONESIAN]: '\n💎 *Ingin limit lebih tinggi?*\n',
+    [Language.INDONESIAN]: '\n💎 *Pengen limit lebih tinggi?*\n',
     [Language.ENGLISH]: '\n💎 *Want higher limits?*\n'
   },
   'limit.upgrade_text': {
-    [Language.INDONESIAN]: 'Hubungi admin untuk upgrade ke Premium!',
+    [Language.INDONESIAN]: 'Chat admin untuk upgrade ke Premium!',
     [Language.ENGLISH]: 'Contact admin to upgrade to Premium!'
   },
   'limit.tips_title': {
@@ -503,32 +559,32 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '\n\n💡 *Tips:*\n'
   },
   'limit.tip_use_wisely': {
-    [Language.INDONESIAN]: '• Gunakan fitur secara bijak\n',
+    [Language.INDONESIAN]: '• Pakai fitur secara bijak\n',
     [Language.ENGLISH]: '• Use features wisely\n'
   },
   'limit.tip_daily_reset': {
-    [Language.INDONESIAN]: '• Limit direset setiap hari\n',
+    [Language.INDONESIAN]: '• Limit direset tiap hari\n',
     [Language.ENGLISH]: '• Limits reset daily\n'
   },
   'limit.tip_upgrade': {
-    [Language.INDONESIAN]: '• Upgrade untuk akses lebih luas',
+    [Language.INDONESIAN]: '• Upgrade buat akses lebih luas',
     [Language.ENGLISH]: '• Upgrade for broader access'
   },
   'limit.error_general': {
-    [Language.INDONESIAN]: 'Terjadi kesalahan saat mendapatkan informasi limit.',
-    [Language.ENGLISH]: 'An error occurred while getting limit information.'
+    [Language.INDONESIAN]: 'Waduh, ada error saat ambil info limit. Coba lagi ya! 😅',
+    [Language.ENGLISH]: 'Oops, error getting limit info. Please try again! 😅'
   },
   'limit.error_database': {
-    [Language.INDONESIAN]: 'Kesalahan database saat mengambil data penggunaan.',
-    [Language.ENGLISH]: 'Database error while retrieving usage data.'
+    [Language.INDONESIAN]: 'Ada masalah database nih. Coba lagi sebentar ya! 🔧',
+    [Language.ENGLISH]: 'Database issue. Please try again in a moment! 🔧'
   },
   'limit.error_user': {
-    [Language.INDONESIAN]: 'Data pengguna tidak valid atau tidak ditemukan.',
-    [Language.ENGLISH]: 'User data is invalid or not found.'
+    [Language.INDONESIAN]: 'Data pengguna nggak valid atau nggak ketemu. Daftar dulu ya! 🔍',
+    [Language.ENGLISH]: 'User data is invalid or not found. Please register first! 🔍'
   },
   'limit.error_footer': {
-    [Language.INDONESIAN]: '\n\n_Silakan coba lagi nanti atau hubungi administrator._',
-    [Language.ENGLISH]: '\n\n_Please try again later or contact administrator._'
+    [Language.INDONESIAN]: '\n\n_Coba lagi nanti atau hubungi admin ya!_',
+    [Language.ENGLISH]: '\n\n_Please try again later or contact admin!_'
   },
   'limit.daily_usage': {
     [Language.INDONESIAN]: '📈 *Penggunaan Harian:*',
@@ -545,113 +601,121 @@ const translations: LanguageData = {
   'limit.upgrade_suggestion': {
     [Language.INDONESIAN]: '💡 _Upgrade ke Premium untuk limit lebih tinggi!_',
     [Language.ENGLISH]: '💡 _Upgrade to Premium for higher limits!_'
-  },
-  // N8N command
+  },  // N8N command
   'n8n.not_registered': {
-    [Language.INDONESIAN]: '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
-    [Language.ENGLISH]: '❌ You are not registered yet. Please register with the command *!register* first.'
+    [Language.INDONESIAN]: '❌ Kamu belum daftar nih. Daftar dulu yuk dengan *!register* 😊',
+    [Language.ENGLISH]: '❌ You haven\'t registered yet. Please register first with *!register* 😊'
   },
   'n8n.limit_reached': {
-    [Language.INDONESIAN]: '⚠️ Anda telah mencapai batas penggunaan fitur N8N ({currentUsage}/{maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium untuk mendapatkan limit lebih tinggi.',
-    [Language.ENGLISH]: '⚠️ You have reached the N8N feature usage limit ({currentUsage}/{maxUsage}).\n\nPlease wait until the limit resets or upgrade to Premium for higher limits.'
+    [Language.INDONESIAN]: '⚠️ Limit N8N kamu sudah habis nih ({currentUsage}/{maxUsage}).\n\nTunggu sampai reset atau upgrade ke Premium buat limit lebih tinggi! ⭐',
+    [Language.ENGLISH]: '⚠️ Your N8N limit is used up ({currentUsage}/{maxUsage}).\n\nWait until reset or upgrade to Premium for higher limits! ⭐'
   },
   'n8n.workflow_id_empty': {
-    [Language.INDONESIAN]: '❌ Workflow ID tidak boleh kosong. Contoh: `!n8n translate Hello World`',
-    [Language.ENGLISH]: '❌ Workflow ID cannot be empty. Example: `!n8n translate Hello World`'
+    [Language.INDONESIAN]: '❌ Workflow ID kosong nih. Contoh: `!n8n translate Hello World` 📝',
+    [Language.ENGLISH]: '❌ Workflow ID is empty. Example: `!n8n translate Hello World` 📝'
   },
   'n8n.config_missing': {
-    [Language.INDONESIAN]: '❌ Konfigurasi N8N belum lengkap. Hubungi administrator.',
-    [Language.ENGLISH]: '❌ N8N configuration is incomplete. Contact administrator.'
+    [Language.INDONESIAN]: '❌ Konfigurasi N8N belum lengkap. Hubungi admin ya! 🔧',
+    [Language.ENGLISH]: '❌ N8N configuration is incomplete. Please contact admin! 🔧'
+  },  'n8n.executing': {
+    [Language.INDONESIAN]: '🔄 Lagi jalanin workflow N8N... tunggu sebentar ya!',
+    [Language.ENGLISH]: '🔄 Running N8N workflow... please wait a moment!'
   },
-  'n8n.executing': {
-    [Language.INDONESIAN]: '🔄 Menjalankan workflow N8N...',
-    [Language.ENGLISH]: '🔄 Executing N8N workflow...'
+  'n8n.processing': {
+    [Language.INDONESIAN]: '⏳ Sedang memproses workflow N8N...',
+    [Language.ENGLISH]: '⏳ Processing N8N workflow...'
   },
   'n8n.success': {
-    [Language.INDONESIAN]: '✅ *Workflow N8N Berhasil*\n\n📋 *Hasil:*\n{result}',
-    [Language.ENGLISH]: '✅ *N8N Workflow Success*\n\n📋 *Result:*\n{result}'
+    [Language.INDONESIAN]: '✅ *Workflow N8N Berhasil!* 🎉\n\n📋 *Hasil:*\n{result}',
+    [Language.ENGLISH]: '✅ *N8N Workflow Success!* 🎉\n\n📋 *Result:*\n{result}'
   },
   'n8n.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat menjalankan workflow N8N:\n{error}',
-    [Language.ENGLISH]: '❌ An error occurred while executing N8N workflow:\n{error}'
+    [Language.INDONESIAN]: '❌ Ada error saat jalanin workflow N8N:\n{error}\n\nCoba lagi atau hubungi admin ya! 🔧',
+    [Language.ENGLISH]: '❌ Error running N8N workflow:\n{error}\n\nPlease try again or contact admin! 🔧'
   },
-
   // Reminder command
   'reminder.not_registered': {
-    [Language.INDONESIAN]: '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
-    [Language.ENGLISH]: '❌ You are not registered yet. Please register with the command *!register* first.'
+    [Language.INDONESIAN]: '❌ Kamu belum daftar nih. Daftar dulu yuk dengan *!register* 😊',
+    [Language.ENGLISH]: '❌ You haven\'t registered yet. Please register first with *!register* 😊'
   },
   'reminder.limit_reached': {
-    [Language.INDONESIAN]: '⚠️ Anda telah mencapai batas pembuatan pengingat ({currentUsage}/{maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium.',
-    [Language.ENGLISH]: '⚠️ You have reached the reminder creation limit ({currentUsage}/{maxUsage}).\n\nPlease wait until the limit resets or upgrade to Premium.'
+    [Language.INDONESIAN]: '⚠️ Limit reminder kamu sudah habis ({currentUsage}/{maxUsage}).\n\nTunggu sampai reset atau upgrade ke Premium ya! ⭐',
+    [Language.ENGLISH]: '⚠️ Your reminder limit is used up ({currentUsage}/{maxUsage}).\n\nWait until reset or upgrade to Premium! ⭐'
   },
   'reminder.invalid_time_format': {
-    [Language.INDONESIAN]: '❌ Format waktu tidak valid.\n\n*Format yang didukung:*\n• `30s` = 30 detik\n• `10m` = 10 menit\n• `2h` = 2 jam\n• `1d` = 1 hari\n\n*Contoh:* `!reminder 30m Jangan lupa makan siang`',
-    [Language.ENGLISH]: '❌ Invalid time format.\n\n*Supported formats:*\n• `30s` = 30 seconds\n• `10m` = 10 minutes\n• `2h` = 2 hours\n• `1d` = 1 day\n\n*Example:* `!reminder 30m Don\'t forget lunch`'
+    [Language.INDONESIAN]: '❌ Format waktu salah nih.\n\n*Format yang bisa:*\n• `30s` = 30 detik\n• `10m` = 10 menit\n• `2h` = 2 jam\n• `1d` = 1 hari\n\n*Contoh:* `!reminder 30m Jangan lupa makan siang` 🍽️',
+    [Language.ENGLISH]: '❌ Wrong time format.\n\n*Available formats:*\n• `30s` = 30 seconds\n• `10m` = 10 minutes\n• `2h` = 2 hours\n• `1d` = 1 day\n\n*Example:* `!reminder 30m Don\'t forget lunch` 🍽️'
   },
   'reminder.time_too_short': {
-    [Language.INDONESIAN]: '❌ Waktu pengingat terlalu singkat. Minimal 30 detik.',
-    [Language.ENGLISH]: '❌ Reminder time is too short. Minimum 30 seconds.'
+    [Language.INDONESIAN]: '❌ Waktunya terlalu pendek. Minimal 30 detik ya! ⏱️',
+    [Language.ENGLISH]: '❌ Time is too short. Minimum 30 seconds! ⏱️'
   },
   'reminder.time_too_long': {
-    [Language.INDONESIAN]: '❌ Waktu pengingat terlalu lama. Maksimal 30 hari.',
-    [Language.ENGLISH]: '❌ Reminder time is too long. Maximum 30 days.'
+    [Language.INDONESIAN]: '❌ Waktunya terlalu lama. Maksimal 30 hari ya! 📅',
+    [Language.ENGLISH]: '❌ Time is too long. Maximum 30 days! 📅'
+  },  'reminder.created': {
+    [Language.INDONESIAN]: '✅ *Reminder berhasil dibuat!* 🎉\n\n📝 *Pesan:* {message}\n⏰ *Waktu:* {time}\n📍 *Konteks:* {context}',
+    [Language.ENGLISH]: '✅ *Reminder successfully created!* 🎉\n\n📝 *Message:* {message}\n⏰ *Time:* {time}\n📍 *Context:* {context}'
   },
-  'reminder.created': {
-    [Language.INDONESIAN]: '✅ *Pengingat Berhasil Dibuat*\n\n📝 *Pesan:* {message}\n⏰ *Waktu:* {time}\n📍 *Konteks:* {context}',
-    [Language.ENGLISH]: '✅ *Reminder Successfully Created*\n\n📝 *Message:* {message}\n⏰ *Time:* {time}\n📍 *Context:* {context}'
-  },  'reminder.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat membuat pengingat.',
-    [Language.ENGLISH]: '❌ An error occurred while creating reminder.'
+  'reminder.success': {
+    [Language.INDONESIAN]: '✅ Reminder berhasil diatur! Kamu akan diingatkan dalam {time} 🔔',
+    [Language.ENGLISH]: '✅ Reminder set successfully! You will be reminded in {time} 🔔'
+  },
+  'reminder.error': {
+    [Language.INDONESIAN]: '❌ Gagal bikin reminder nih. Coba lagi ya! 😅',
+    [Language.ENGLISH]: '❌ Failed to create reminder. Please try again! 😅'
   },
   'reminder.message_too_long': {
-    [Language.INDONESIAN]: '❌ Pesan pengingat terlalu panjang. Maksimal 500 karakter.',
-    [Language.ENGLISH]: '❌ Reminder message is too long. Maximum 500 characters.'
+    [Language.INDONESIAN]: '❌ Pesan reminder terlalu panjang. Maksimal 500 karakter ya! ✂️',
+    [Language.ENGLISH]: '❌ Reminder message is too long. Maximum 500 characters! ✂️'
   },
   'reminder.group_context': {
     [Language.INDONESIAN]: 'grup ini',
     [Language.ENGLISH]: 'this group'
   },
   'reminder.personal_context': {
-    [Language.INDONESIAN]: 'Anda secara personal',
-    [Language.ENGLISH]: 'you personally'
+    [Language.INDONESIAN]: 'chat personal',
+    [Language.ENGLISH]: 'personal chat'
+  },  // TagAll command
+  'tagall.title': {
+    [Language.INDONESIAN]: '📢 Tag All Members',
+    [Language.ENGLISH]: '📢 Tag All Members'
   },
-
-  // TagAll command
   'tagall.not_registered': {
-    [Language.INDONESIAN]: '❌ Anda belum terdaftar. Silakan daftar dengan perintah *!register* terlebih dahulu.',
-    [Language.ENGLISH]: '❌ You are not registered yet. Please register with the command *!register* first.'
+    [Language.INDONESIAN]: '❌ Kamu belum daftar nih. Daftar dulu yuk dengan *!register* 😊',
+    [Language.ENGLISH]: '❌ You haven\'t registered yet. Please register first with *!register* 😊'
   },
   'tagall.limit_reached': {
-    [Language.INDONESIAN]: '⚠️ Anda telah mencapai batas penggunaan tag all ({currentUsage}/{maxUsage}).\n\nSilakan tunggu hingga limit direset atau upgrade ke Premium.',
-    [Language.ENGLISH]: '⚠️ You have reached the tag all usage limit ({currentUsage}/{maxUsage}).\n\nPlease wait until the limit resets or upgrade to Premium.'
+    [Language.INDONESIAN]: '⚠️ Limit tag all kamu sudah habis ({currentUsage}/{maxUsage}).\n\nTunggu sampai reset atau upgrade ke Premium ya! ⭐',
+    [Language.ENGLISH]: '⚠️ Your tag all limit is used up ({currentUsage}/{maxUsage}).\n\nWait until reset or upgrade to Premium! ⭐'
   },
   'tagall.admin_only': {
-    [Language.INDONESIAN]: '🚫 Perintah ini hanya dapat digunakan oleh admin grup atau level Admin bot ke atas.',
-    [Language.ENGLISH]: '🚫 This command can only be used by group admins or bot Admin level and above.'
+    [Language.INDONESIAN]: '🚫 Perintah ini khusus admin grup atau level Admin bot ke atas ya! 👑',
+    [Language.ENGLISH]: '🚫 This command is for group admins or bot Admin level and above! 👑'
   },
   'tagall.no_message': {
-    [Language.INDONESIAN]: '👥 *Tag All Members*\n\n_Semua anggota grup telah ditandai_',
-    [Language.ENGLISH]: '👥 *Tag All Members*\n\n_All group members have been tagged_'
+    [Language.INDONESIAN]: '👥 *Tag All Members* 📢\n\n_Semua anggota grup udah ditandai nih!_',
+    [Language.ENGLISH]: '👥 *Tag All Members* 📢\n\n_All group members have been tagged!_'
   },
   'tagall.with_message': {
-    [Language.INDONESIAN]: '👥 *Tag All Members*\n\n📢 *Pesan:* {message}\n\n_Semua anggota grup telah ditandai_',
-    [Language.ENGLISH]: '👥 *Tag All Members*\n\n📢 *Message:* {message}\n\n_All group members have been tagged_'
-  },  'tagall.error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat melakukan tag all.',
-    [Language.ENGLISH]: '❌ An error occurred while performing tag all.'
+    [Language.INDONESIAN]: '👥 *Tag All Members* 📢\n\n💬 *Pesan:* {message}\n\n_Semua anggota grup udah ditandai!_',
+    [Language.ENGLISH]: '👥 *Tag All Members* 📢\n\n💬 *Message:* {message}\n\n_All group members have been tagged!_'
+  },
+  'tagall.error': {
+    [Language.INDONESIAN]: '❌ Ada error saat tag all. Coba lagi ya! 😅',
+    [Language.ENGLISH]: '❌ Error during tag all. Please try again! 😅'
   },
   'tagall.group_only': {
-    [Language.INDONESIAN]: '❌ Perintah ini hanya dapat digunakan di grup.',
-    [Language.ENGLISH]: '❌ This command can only be used in groups.'
+    [Language.INDONESIAN]: '❌ Perintah ini cuma bisa dipake di grup ya! 👥',
+    [Language.ENGLISH]: '❌ This command can only be used in groups! 👥'
   },
   'tagall.no_metadata': {
-    [Language.INDONESIAN]: '❌ Tidak dapat mengambil informasi grup.',
-    [Language.ENGLISH]: '❌ Could not retrieve group information.'
+    [Language.INDONESIAN]: '❌ Nggak bisa ambil info grup nih. Coba lagi! 🔄',
+    [Language.ENGLISH]: '❌ Can\'t get group info. Please try again! 🔄'
   },
   'tagall.no_members': {
-    [Language.INDONESIAN]: '❌ Grup ini tidak memiliki anggota.',
-    [Language.ENGLISH]: '❌ This group has no members.'
+    [Language.INDONESIAN]: '❌ Grup ini nggak ada anggotanya. Aneh deh! 🤔',
+    [Language.ENGLISH]: '❌ This group has no members. That\'s weird! 🤔'
   },
   'tagall.default_message': {
     [Language.INDONESIAN]: 'Perhatian untuk semua anggota grup!',
@@ -860,59 +924,57 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: '📊 *Ringkasan:*\n• Total diproses: {totalProcessed}\n• Berhasil: {resetCount}\n• Gagal: {notFoundCount}\n• Waktu proses: {processingTime}s\n\n⏰ *Waktu:* {currentTime}',
     [Language.ENGLISH]: '📊 *Summary:*\n• Total processed: {totalProcessed}\n• Successful: {resetCount}\n• Failed: {notFoundCount}\n• Processing time: {processingTime}s\n\n⏰ *Time:* {currentTime}'
   },
-  
-  // Upgrade command
+    // Upgrade command
   'upgrade.access_denied': {
-    [Language.INDONESIAN]: '❌ Anda tidak memiliki izin untuk menggunakan perintah ini.\n\n_Hanya admin dan owner yang dapat mengupgrade pengguna._',
-    [Language.ENGLISH]: '❌ You do not have permission to use this command.\n\n_Only admin and owner can upgrade users._'
+    [Language.INDONESIAN]: '❌ Kamu nggak punya akses untuk perintah ini.\n\n_Cuma admin dan owner yang bisa upgrade pengguna lain._',
+    [Language.ENGLISH]: '❌ You don\'t have access to this command.\n\n_Only admin and owner can upgrade other users._'
   },
   'upgrade.invalid_target': {
-    [Language.INDONESIAN]: '❌ Silakan tag pengguna yang ingin di-upgrade atau masukkan nomor telepon.\n\n*Cara penggunaan:*\n• `upgrade @user` (tag pengguna)\n• `upgrade 6281234567890` (nomor telepon)',
-    [Language.ENGLISH]: '❌ Please tag the user you want to upgrade or enter a phone number.\n\n*Usage:*\n• `upgrade @user` (tag user)\n• `upgrade 6281234567890` (phone number)'
+    [Language.INDONESIAN]: '❌ Tag pengguna yang mau di-upgrade atau masukkan nomornya.\n\n*Cara pakai:*\n• `upgrade @user` (tag pengguna)\n• `upgrade 6281234567890` (nomor telepon)',
+    [Language.ENGLISH]: '❌ Please tag the user you want to upgrade or enter their number.\n\n*How to use:*\n• `upgrade @user` (tag user)\n• `upgrade 6281234567890` (phone number)'
   },
   'upgrade.user_not_found': {
-    [Language.INDONESIAN]: '❌ Pengguna belum terdaftar dalam sistem.\n\n_Pengguna harus melakukan registrasi terlebih dahulu dengan perintah register_',
-    [Language.ENGLISH]: '❌ User is not registered in the system.\n\n_User must register first with the register command_'
+    [Language.INDONESIAN]: '❌ Pengguna belum daftar di sistem nih.\n\n_Mereka harus register dulu dengan perintah register_',
+    [Language.ENGLISH]: '❌ User is not registered in the system yet.\n\n_They must register first with the register command_'
   },
   'upgrade.already_premium': {
-    [Language.INDONESIAN]: '⚠️ Pengguna ini sudah memiliki level {levelName} atau lebih tinggi.\n\n📊 *Level saat ini:* {levelName}',
+    [Language.INDONESIAN]: '⚠️ Pengguna ini udah level {levelName} atau lebih tinggi kok.\n\n📊 *Level sekarang:* {levelName}',
     [Language.ENGLISH]: '⚠️ This user already has {levelName} level or higher.\n\n📊 *Current level:* {levelName}'
   },
   'upgrade.self_upgrade_denied': {
-    [Language.INDONESIAN]: '❌ Anda tidak dapat mengupgrade level diri sendiri.',
-    [Language.ENGLISH]: '❌ You cannot upgrade your own level.'
+    [Language.INDONESIAN]: '❌ Kamu nggak bisa upgrade level diri sendiri dong! 😅',
+    [Language.ENGLISH]: '❌ You can\'t upgrade your own level! 😅'
   },
   'upgrade.upgrade_failed': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat mengupgrade pengguna.\n\n_Silakan coba lagi atau hubungi administrator sistem._',
-    [Language.ENGLISH]: '❌ An error occurred while upgrading user.\n\n_Please try again or contact system administrator._'
+    [Language.INDONESIAN]: '❌ Gagal upgrade pengguna nih. Coba lagi ya!\n\n_Kalau masih error, hubungi admin sistem._',
+    [Language.ENGLISH]: '❌ Failed to upgrade user. Please try again!\n\n_If it keeps failing, contact system admin._'
   },
   'upgrade.success_with_mention': {
-    [Language.INDONESIAN]: '✅ Berhasil mengupgrade @{targetPhone} ke level Premium!\n\n👤 *Target:* {targetName}\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}',
-    [Language.ENGLISH]: '✅ Successfully upgraded @{targetPhone} to Premium level!\n\n👤 *Target:* {targetName}\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}'
+    [Language.INDONESIAN]: '✅ Berhasil upgrade @{targetPhone} ke level Premium! 🎉\n\n👤 *Target:* {targetName}\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}',
+    [Language.ENGLISH]: '✅ Successfully upgraded @{targetPhone} to Premium level! 🎉\n\n👤 *Target:* {targetName}\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}'
   },
   'upgrade.success_without_mention': {
-    [Language.INDONESIAN]: '✅ Berhasil mengupgrade pengguna {targetPhone} ke level Premium!\n\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}',
-    [Language.ENGLISH]: '✅ Successfully upgraded user {targetPhone} to Premium level!\n\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}'
+    [Language.INDONESIAN]: '✅ Berhasil upgrade pengguna {targetPhone} ke level Premium! 🎉\n\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}',
+    [Language.ENGLISH]: '✅ Successfully upgraded user {targetPhone} to Premium level! 🎉\n\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}'
   },
   'upgrade.user_notification': {
-    [Language.INDONESIAN]: '🎉 *Selamat! Level Akun Upgraded!*\n\n📈 Level akun Anda telah diupgrade menjadi *Premium*!\n\n✨ *Keuntungan Premium:*\n• Limit penggunaan lebih tinggi untuk semua fitur\n• Akses prioritas ke fitur baru\n• Dukungan teknis yang lebih baik\n\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}\n\n_Terima kasih telah menggunakan bot kami!_',
-    [Language.ENGLISH]: '🎉 *Congratulations! Account Level Upgraded!*\n\n📈 Your account level has been upgraded to *Premium*!\n\n✨ *Premium Benefits:*\n• Higher usage limits for all features\n• Priority access to new features\n• Better technical support\n\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}\n\n_Thank you for using our bot!_'
-  },
-  'upgrade.general_error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat mengupgrade pengguna.\n\n_Silakan coba lagi nanti atau hubungi administrator._',
-    [Language.ENGLISH]: '❌ An error occurred while upgrading user.\n\n_Please try again later or contact administrator._'
+    [Language.INDONESIAN]: '🎉 *Selamat! Level kamu diupgrade!* 🚀\n\n📈 Level akun kamu sekarang jadi *Premium*!\n\n✨ *Keuntungan Premium:*\n• Limit lebih tinggi untuk semua fitur\n• Akses prioritas ke fitur baru\n• Support lebih baik\n\n👑 *Diupgrade oleh:* {adminName}\n🕐 *Waktu:* {currentTime}\n\n_Makasih udah pakai bot kami!_ 💝',
+    [Language.ENGLISH]: '🎉 *Congratulations! Your level upgraded!* 🚀\n\n📈 Your account level is now *Premium*!\n\n✨ *Premium Benefits:*\n• Higher limits for all features\n• Priority access to new features\n• Better support\n\n👑 *Upgraded by:* {adminName}\n🕐 *Time:* {currentTime}\n\n_Thank you for using our bot!_ 💝'
+  },  'upgrade.general_error': {
+    [Language.INDONESIAN]: '❌ Ada error saat upgrade pengguna. Coba lagi ya!\n\n_Kalau masih error terus, hubungi admin._',
+    [Language.ENGLISH]: '❌ Error upgrading user. Please try again!\n\n_If it keeps failing, contact admin._'
   },
   'upgrade.database_error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan database saat mengupgrade pengguna.\n\n_Silakan coba lagi nanti atau hubungi administrator._',
-    [Language.ENGLISH]: '❌ Database error occurred while upgrading user.\n\n_Please try again later or contact administrator._'
+    [Language.INDONESIAN]: '❌ Ada masalah database saat upgrade pengguna.\n\n_Coba lagi nanti atau hubungi admin._',
+    [Language.ENGLISH]: '❌ Database issue while upgrading user.\n\n_Please try again later or contact admin._'
   },
   'upgrade.validation_error': {
-    [Language.INDONESIAN]: '❌ Data pengguna tidak valid untuk diupgrade.\n\n_Silakan coba lagi nanti atau hubungi administrator._',
-    [Language.ENGLISH]: '❌ User data is not valid for upgrade.\n\n_Please try again later or contact administrator._'
+    [Language.INDONESIAN]: '❌ Data pengguna nggak valid untuk diupgrade.\n\n_Coba lagi nanti atau hubungi admin._',
+    [Language.ENGLISH]: '❌ User data is not valid for upgrade.\n\n_Please try again later or contact admin._'
   },
   'upgrade.permission_error': {
-    [Language.INDONESIAN]: '❌ Tidak memiliki izin untuk mengupgrade pengguna ini.\n\n_Silakan coba lagi nanti atau hubungi administrator._',
-    [Language.ENGLISH]: '❌ No permission to upgrade this user.\n\n_Please try again later or contact administrator._'
+    [Language.INDONESIAN]: '❌ Nggak punya izin untuk upgrade pengguna ini.\n\n_Coba lagi nanti atau hubungi admin._',
+    [Language.ENGLISH]: '❌ No permission to upgrade this user.\n\n_Please try again later or contact admin._'
   },
   
   // Common level names
@@ -923,54 +985,53 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: 'Admin',
     [Language.ENGLISH]: 'Admin'
   },
-  
-  // SetAdmin command
+    // SetAdmin command
   'setadmin.access_denied': {
-    [Language.INDONESIAN]: '❌ Anda tidak memiliki izin untuk menggunakan perintah ini.\n\n_Hanya owner yang dapat mengatur admin._',
-    [Language.ENGLISH]: '❌ You do not have permission to use this command.\n\n_Only owner can set admin._'
+    [Language.INDONESIAN]: '❌ Kamu nggak punya akses untuk perintah ini.\n\n_Cuma owner yang bisa atur admin._',
+    [Language.ENGLISH]: '❌ You don\'t have access to this command.\n\n_Only owner can set admin._'
   },
   'setadmin.invalid_target': {
-    [Language.INDONESIAN]: '❌ Silakan tag pengguna atau masukkan nomor telepon yang ingin dijadikan admin.\n\n*Cara penggunaan:*\n• `setadmin @user` (tag pengguna)\n• `setadmin 6281234567890` (nomor telepon)',
-    [Language.ENGLISH]: '❌ Please tag a user or enter phone number to make admin.\n\n*Usage:*\n• `setadmin @user` (tag user)\n• `setadmin 6281234567890` (phone number)'
+    [Language.INDONESIAN]: '❌ Tag pengguna atau masukkan nomor yang mau dijadikan admin.\n\n*Cara pakai:*\n• `setadmin @user` (tag pengguna)\n• `setadmin 6281234567890` (nomor telepon)',
+    [Language.ENGLISH]: '❌ Please tag a user or enter number to make admin.\n\n*How to use:*\n• `setadmin @user` (tag user)\n• `setadmin 6281234567890` (phone number)'
   },
   'setadmin.owner_already_admin': {
-    [Language.INDONESIAN]: '⚠️ Owner sudah memiliki hak akses tertinggi.',
-    [Language.ENGLISH]: '⚠️ Owner already has the highest access level.'
+    [Language.INDONESIAN]: '⚠️ Owner udah punya hak akses tertinggi kok! 👑',
+    [Language.ENGLISH]: '⚠️ Owner already has the highest access level! 👑'
   },
   'setadmin.user_not_found': {
-    [Language.INDONESIAN]: '❌ Pengguna belum terdaftar dalam sistem.\n\n_Pengguna harus melakukan registrasi terlebih dahulu._',
-    [Language.ENGLISH]: '❌ User is not registered in the system.\n\n_User must register first._'
+    [Language.INDONESIAN]: '❌ Pengguna belum daftar di sistem nih.\n\n_Mereka harus register dulu._',
+    [Language.ENGLISH]: '❌ User is not registered in the system yet.\n\n_They must register first._'
   },
   'setadmin.already_admin': {
-    [Language.INDONESIAN]: '⚠️ {userName} ({phoneNumber}) sudah memiliki level Admin atau lebih tinggi.\n\n📊 *Level saat ini:* {currentLevel}',
-    [Language.ENGLISH]: '⚠️ {userName} ({phoneNumber}) already has Admin level or higher.\n\n📊 *Current level:* {currentLevel}'
+    [Language.INDONESIAN]: '⚠️ {userName} ({phoneNumber}) udah jadi Admin atau lebih tinggi kok.\n\n📊 *Level sekarang:* {currentLevel}',
+    [Language.ENGLISH]: '⚠️ {userName} ({phoneNumber}) is already Admin or higher.\n\n📊 *Current level:* {currentLevel}'
   },
   'setadmin.update_failed': {
-    [Language.INDONESIAN]: '❌ Gagal memperbarui level pengguna ke Admin.\n\n_Silakan coba lagi atau hubungi support._',
+    [Language.INDONESIAN]: '❌ Gagal update level pengguna ke Admin nih.\n\n_Coba lagi atau hubungi support._',
     [Language.ENGLISH]: '❌ Failed to update user level to Admin.\n\n_Please try again or contact support._'
   },
   'setadmin.success': {
-    [Language.INDONESIAN]: '✅ Berhasil menjadikan {userName} sebagai Admin!\n\n👤 *Pengguna:* {userName}\n📱 *Nomor:* {phoneNumber}\n📈 *Level sebelumnya:* {previousLevel}\n🚀 *Level baru:* Admin\n🕐 *Waktu:* {currentTime}\n\n🎉 Selamat! Pengguna ini sekarang memiliki akses Admin.',
-    [Language.ENGLISH]: '✅ Successfully made {userName} an Admin!\n\n👤 *User:* {userName}\n📱 *Number:* {phoneNumber}\n📈 *Previous level:* {previousLevel}\n🚀 *New level:* Admin\n🕐 *Time:* {currentTime}\n\n🎉 Congratulations! This user now has Admin access.'
+    [Language.INDONESIAN]: '✅ Berhasil jadikan {userName} sebagai Admin! 🎉\n\n👤 *Pengguna:* {userName}\n📱 *Nomor:* {phoneNumber}\n📈 *Level sebelumnya:* {previousLevel}\n🚀 *Level baru:* Admin\n🕐 *Waktu:* {currentTime}\n\n🎉 Selamat! Mereka sekarang punya akses Admin.',
+    [Language.ENGLISH]: '✅ Successfully made {userName} an Admin! 🎉\n\n👤 *User:* {userName}\n📱 *Number:* {phoneNumber}\n📈 *Previous level:* {previousLevel}\n🚀 *New level:* Admin\n🕐 *Time:* {currentTime}\n\n🎉 Congratulations! They now have Admin access.'
   },
   'setadmin.user_notification': {
-    [Language.INDONESIAN]: '🎉 *Selamat! Anda telah menjadi Admin!*\n\n📈 Level akun Anda telah diupgrade menjadi *Admin* oleh Owner.\n\n✨ *Hak Akses Admin:*\n• Mengelola pengguna dan level mereka\n• Mengakses fitur khusus admin\n• Reset limit penggunaan pengguna\n• Broadcast pesan ke semua pengguna\n• Akses ke semua perintah bot\n\n🤖 *Bot:* {botName}\n🕐 *Waktu promosi:* Sekarang\n\n_Gunakan kekuatan ini dengan bijak!_',
-    [Language.ENGLISH]: '🎉 *Congratulations! You are now an Admin!*\n\n📈 Your account level has been upgraded to *Admin* by the Owner.\n\n✨ *Admin Access:*\n• Manage users and their levels\n• Access special admin features\n• Reset user usage limits\n• Broadcast messages to all users\n• Access to all bot commands\n\n🤖 *Bot:* {botName}\n🕐 *Promotion time:* Now\n\n_Use this power wisely!_'
-  },
-  'setadmin.general_error': {
-    [Language.INDONESIAN]: '❌ Terjadi kesalahan saat mengatur admin.\n\n_Silakan coba lagi atau hubungi support jika masalah berlanjut._',
-    [Language.ENGLISH]: '❌ An error occurred while setting admin.\n\n_Please try again or contact support if the problem persists._'
+    [Language.INDONESIAN]: '🎉 *Selamat! Kamu jadi Admin sekarang!* 👑\n\n📈 Level akun kamu diupgrade jadi *Admin* sama Owner.\n\n✨ *Hak Akses Admin:*\n• Kelola pengguna dan level mereka\n• Akses fitur khusus admin\n• Reset limit penggunaan pengguna\n• Broadcast pesan ke semua pengguna\n• Akses ke semua perintah bot\n\n🤖 *Bot:* {botName}\n🕐 *Waktu promosi:* Sekarang\n\n_Gunakan kekuatan ini dengan bijak ya!_ 💪',
+    [Language.ENGLISH]: '🎉 *Congratulations! You are now an Admin!* 👑\n\n📈 Your account level has been upgraded to *Admin* by the Owner.\n\n✨ *Admin Access:*\n• Manage users and their levels\n• Access special admin features\n• Reset user usage limits\n• Broadcast messages to all users\n• Access to all bot commands\n\n🤖 *Bot:* {botName}\n🕐 *Promotion time:* Now\n\n_Use this power wisely!_ 💪'
+  },  'setadmin.general_error': {
+    [Language.INDONESIAN]: '❌ Ada error saat atur admin. Coba lagi ya!\n\n_Kalau masih bermasalah, hubungi support._',
+    [Language.ENGLISH]: '❌ Error setting admin. Please try again!\n\n_If problem persists, contact support._'
   },
   'setadmin.database_error': {
-    [Language.INDONESIAN]: '❌ Kesalahan database saat memperbarui level pengguna.\n\n_Silakan coba lagi atau hubungi support jika masalah berlanjut._',
-    [Language.ENGLISH]: '❌ Database error while updating user level.\n\n_Please try again or contact support if the problem persists._'
+    [Language.INDONESIAN]: '❌ Ada masalah database saat update level pengguna.\n\n_Coba lagi nanti atau hubungi support._',
+    [Language.ENGLISH]: '❌ Database issue while updating user level.\n\n_Please try again later or contact support._'
   },
   'setadmin.permission_error': {
-    [Language.INDONESIAN]: '❌ Tidak memiliki izin untuk melakukan operasi ini.\n\n_Silakan coba lagi atau hubungi support jika masalah berlanjut._',
-    [Language.ENGLISH]: '❌ No permission to perform this operation.\n\n_Please try again or contact support if the problem persists._'
-  },  'setadmin.user_error': {
-    [Language.INDONESIAN]: '❌ Pengguna tidak ditemukan atau tidak valid.\n\n_Silakan coba lagi atau hubungi support jika masalah berlanjut._',
-    [Language.ENGLISH]: '❌ User not found or invalid.\n\n_Please try again or contact support if the problem persists._'
+    [Language.INDONESIAN]: '❌ Nggak punya izin untuk operasi ini.\n\n_Coba lagi nanti atau hubungi support._',
+    [Language.ENGLISH]: '❌ No permission for this operation.\n\n_Please try again later or contact support._'
+  },
+  'setadmin.user_error': {
+    [Language.INDONESIAN]: '❌ Pengguna nggak ketemu atau nggak valid.\n\n_Coba lagi nanti atau hubungi support._',
+    [Language.ENGLISH]: '❌ User not found or invalid.\n\n_Please try again later or contact support._'
   },
 
   // Broadcast command
@@ -1071,6 +1132,52 @@ const translations: LanguageData = {
   'restart.error': {
     [Language.INDONESIAN]: '*❌ Restart Gagal*\n\n🚨 *ERROR SAAT RESTART!*\n\n⚠️ *Detail Error:*\n• {errorMessage}\n\n🔄 *Solusi:*\n• Coba restart manual dari server\n• Periksa log sistem untuk detail\n• Hubungi developer jika masalah berlanjut\n\n📊 *System Info:*\n• PID: {processId}\n• Memory: {memoryUsage}MB\n• Uptime: {uptime}\n\n⏰ *Waktu error:* {currentTime}',
     [Language.ENGLISH]: '*❌ Restart Failed*\n\n🚨 *ERROR DURING RESTART!*\n\n⚠️ *Error Details:*\n• {errorMessage}\n\n🔄 *Solutions:*\n• Try manual restart from server\n• Check system logs for details\n• Contact developer if problem persists\n\n📊 *System Info:*\n• PID: {processId}\n• Memory: {memoryUsage}MB\n• Uptime: {uptime}\n\n⏰ *Error time:* {currentTime}'
+  },
+
+  // Language command specific keys
+  'language.current_language_id': {
+    [Language.INDONESIAN]: '🌐 Bahasa saat ini: Bahasa Indonesia',
+    [Language.ENGLISH]: '🌐 Current language: Indonesian'
+  },
+  'language.current_language_en': {
+    [Language.INDONESIAN]: '🌐 Bahasa saat ini: English',
+    [Language.ENGLISH]: '🌐 Current language: English'
+  },
+  'language.changed_success_id': {
+    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke Bahasa Indonesia!',
+    [Language.ENGLISH]: '✅ Language successfully changed to Indonesian!'
+  },
+  'language.changed_success_en': {
+    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke English!',
+    [Language.ENGLISH]: '✅ Language successfully changed to English!'
+  },
+
+  // Profile command specific keys
+  'profile.phone_label': {
+    [Language.INDONESIAN]: '📱 *Nomor:*',
+    [Language.ENGLISH]: '📱 *Phone:*'
+  },
+  'profile.level_label': {
+    [Language.INDONESIAN]: '🏆 *Level:*',
+    [Language.ENGLISH]: '🏆 *Level:*'
+  },
+  'profile.registration_date_label': {
+    [Language.INDONESIAN]: '📅 *Terdaftar:*',
+    [Language.ENGLISH]: '📅 *Registered:*'
+  },
+  'profile.welcome_message': {
+    [Language.INDONESIAN]: 'Selamat datang {userName}! Bot {botName} siap membantu Anda.',
+    [Language.ENGLISH]: 'Welcome {userName}! Bot {botName} is ready to assist you.'
+  },
+
+  // Limit command specific keys
+  'limit.current_usage': {
+    [Language.INDONESIAN]: '📊 Penggunaan: {currentUsage}/{maxUsage}',
+    [Language.ENGLISH]: '📊 Usage: {currentUsage}/{maxUsage}'
+  },
+  'limit.usage_summary': {
+    [Language.INDONESIAN]: '📈 *Ringkasan Penggunaan:* Fitur N8N, Reminder, dan Tag All tersedia',
+    [Language.ENGLISH]: '📈 *Usage Summary:* N8N, Reminder, and Tag All features available'
   },
 };
 
@@ -1181,6 +1288,17 @@ export function formatDateTime(date: Date, language: Language = Language.INDONES
       timeZone: 'Asia/Jakarta'
     }
   );
+}
+
+/**
+ * Get command description in user's language
+ * @param commandName - Command name
+ * @param language - User's preferred language
+ * @returns Translated command description
+ */
+export function getCommandDescription(commandName: string, language: Language = Language.INDONESIAN): string {
+  const key = `command.desc.${commandName}`;
+  return getText(key, language, commandName); // Fallback to command name if translation not found
 }
 
 /**

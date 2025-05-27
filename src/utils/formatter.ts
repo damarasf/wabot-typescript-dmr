@@ -1,5 +1,5 @@
 import { UserLevel, Language } from '../database/models';
-import { getText, getLevelName } from './i18n';
+import { getText, getLevelName, getCommandDescription } from './i18n';
 import config from './config';
 
 // Create formatted help message for a command
@@ -7,7 +7,7 @@ export function formatHelpCommand(command: any, language: Language = Language.IN
   const { name, description, usage, example, minimumLevel, groupOnly, ownerOnly, adminOnly } = command;
 
   let helpText = `*${name}*\n`;
-  helpText += `${description}\n\n`;
+  helpText += `${getCommandDescription(name, language)}\n\n`;
 
   helpText += `*${getText('help.usage', language)}*\n${usage}\n\n`;
 

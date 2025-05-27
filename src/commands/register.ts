@@ -15,7 +15,7 @@ import { getDisplayPhoneNumber, isValidWhatsAppFormat } from '../utils/phoneUtil
 const register: Command = {
   name: 'register',
   aliases: ['daftar', 'signup'],
-  description: 'Mendaftarkan diri sebagai pengguna bot',
+  description: 'Daftar sebagai user bot',
   usage: '!register',
   example: '!register',
   category: 'Umum',
@@ -68,26 +68,23 @@ const register: Command = {
       logger.user('Registering new user', { 
         phoneNumber: getDisplayPhoneNumber(phoneNumber), 
         displayName 
-      });
-
-      // Validate phone number format
+      });      // Validate phone number format
       if (!isValidWhatsAppFormat(phoneNumber)) {
         logger.error('Invalid phone number format', { phoneNumber });
         await client.reply(
           message.chatId,
-          getText('register.error'),
+          `❌ ${getText('register.validation_error', Language.INDONESIAN)}`,
           message.id
         );
         return;
       }
       
       // Create new user
-      const newUser = await userManager.createUser(phoneNumber);
-        if (!newUser) {
+      const newUser = await userManager.createUser(phoneNumber);      if (!newUser) {
         logger.error('Failed to create user in database', { phoneNumber });
         await client.reply(
           message.chatId,
-          getText('register.error'),
+          `❌ ${getText('register.database_error', Language.INDONESIAN)}`,
           message.id
         );
         return;

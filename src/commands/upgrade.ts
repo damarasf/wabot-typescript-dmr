@@ -15,7 +15,7 @@ import { getText } from '../utils/i18n';
 const upgrade: Command = {
   name: 'upgrade',
   aliases: ['premium'],
-  description: 'Upgrade level pengguna ke Premium',
+  description: 'Upgrade user ke Premium',
   usage: '!upgrade @user',
   example: '!upgrade @user',
   category: 'Admin',
