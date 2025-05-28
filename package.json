@@ -5,9 +5,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "migrate": "ts-node src/database/migrate.ts",
+    "dev": "nodemon --exec ts-node src/index.ts",    "migrate": "ts-node src/database/migrate.ts",
     "migrate:cli": "sequelize-cli db:migrate",
+    "migrate:prod": "node scripts/run-migrations.js",
     "migrate:cli:undo": "sequelize-cli db:migrate:undo",
     "migrate:cli:undo:all": "sequelize-cli db:migrate:undo:all",
     "migrate:create": "sequelize-cli migration:generate",

@@ -40,6 +40,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY .sequelizerc ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force

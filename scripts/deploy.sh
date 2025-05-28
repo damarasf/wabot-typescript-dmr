@@ -23,24 +23,78 @@ wait_for_postgres() {
 run_migrations() {
     echo "📊 Running database migrations..."
     
+    # Setup Sequelize CLI configuration
+    echo "🔧 Setting up Sequelize CLI configuration..."
+    if [ -f "scripts/setup-sequelize.js" ]; then
+        node scripts/setup-sequelize.js
+    else
+        # Fallback setup
+        echo "⚠️  Setup script not found, using fallback configuration..."
+        
+        # Create config directory and files
+        mkdir -p config
+        if [ -f "src/database/config/config.js" ]; then
+            cp src/database/config/config.js config/config.js
+            cp src/database/config/config.js config/config.json
+        fi
+        
+        # Create .sequelizerc if it doesn't exist
+        if [ ! -f ".sequelizerc" ]; then
+            cat > .sequelizerc << 'EOF'
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'config.js'),
+  'models-path': path.resolve('src', 'database', 'models'),
+  'seeders-path': path.resolve('src', 'database', 'seeders'),
+  'migrations-path': path.resolve('src', 'database', 'migrations')
+};
+EOF
+        fi
+    fi
+    
     # Check if sequelize-cli is available
     if command -v npx sequelize-cli > /dev/null 2>&1; then
         echo "🔄 Running Sequelize migrations..."
-        npx sequelize-cli db:migrate
-        echo "✅ Migrations completed successfully!"
         
-        # Run seeders if in development mode
-        if [ "$NODE_ENV" = "development" ]; then
-            echo "🌱 Running database seeders (development mode)..."
-            npx sequelize-cli db:seed:all || echo "⚠️  Seeders failed or already exist"
+        # Try to run migrations with CLI
+        if npx sequelize-cli db:migrate; then
+            echo "✅ Migrations completed successfully!"
+            
+            # Run seeders if in development mode
+            if [ "$NODE_ENV" = "development" ]; then
+                echo "🌱 Running database seeders (development mode)..."
+                npx sequelize-cli db:seed:all || echo "⚠️  Seeders failed or already exist"
+            fi
+        else
+            echo "❌ Sequelize CLI migration failed, trying alternative migration runner..."
+            # Fall back to alternative migration runner
+            if [ -f "scripts/run-migrations.js" ]; then
+                node scripts/run-migrations.js
+            elif [ -f "src/database/migrate.ts" ]; then
+                npx ts-node src/database/migrate.ts
+            else
+                echo "❌ No migration method available"
+                exit 1
+            fi
         fi
     else
         echo "🔄 Running TypeScript migrations..."
-        npm run migrate || echo "⚠️  Migration script not found, trying alternative..."
         
-        # Alternative: direct TypeScript migration
-        if [ -f "src/database/migrate.ts" ]; then
+        # Try production migration script first
+        if [ -f "scripts/run-migrations.js" ]; then
+            echo "🔄 Using production migration runner..."
+            node scripts/run-migrations.js
+        elif npm run migrate:prod 2>/dev/null; then
+            echo "✅ Production migrations completed!"
+        elif npm run migrate 2>/dev/null; then
+            echo "✅ TypeScript migrations completed!"
+        elif [ -f "src/database/migrate.ts" ]; then
+            echo "🔄 Running direct TypeScript migration..."
             npx ts-node src/database/migrate.ts
+        else
+            echo "❌ No migration method available"
+            exit 1
         fi
     fi
 }
