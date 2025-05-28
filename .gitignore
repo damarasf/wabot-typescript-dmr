@@ -64,7 +64,7 @@ logs/
 !README.md
 !SETUP.md
 !COMMANDS.md
-!DEPLOYMENT_GUIDE.md
+!DEPLOYMENT.md
 
 # Backup and temporary files
 *.bak

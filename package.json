@@ -22,10 +22,11 @@
     "docker:run": "docker run -p 3000:3000 wabot-app",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f wabot",
-    "docker:restart": "docker-compose restart wabot",
-    "health": "node -e \"console.log('Health check passed')\"",
+    "docker:logs": "docker-compose logs -f wabot",    "docker:restart": "docker-compose restart wabot",    "health": "node scripts/health-check.js",
+    "health:simple": "node -e \"console.log('Health check passed')\"",
+    "verify:deployment": "node scripts/verify-deployment.js",
     "prod:build": "npm run build && npm prune --production",
+    "prod:migrate": "npm run migrate:cli",
     "prod:start": "NODE_ENV=production npm start"
   },
   "keywords": [

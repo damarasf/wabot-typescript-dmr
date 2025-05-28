@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: wabot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-wabot_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-wabot_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - wabot-network
+
+  wabot:
+    build: .
+    container_name: wabot-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-wabot_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_SSL: "false"
+      PORT: 3000
+      BOT_NAME: ${BOT_NAME:-DMR Bot}
+      OWNER_NUMBER: ${OWNER_NUMBER}
+      SESSION_DATA_PATH: /app/data
+      HEADLESS: "true"
+      USE_CHROME: "true"
+      CHROME_PATH: /usr/bin/chromium-browser
+      # WhatsApp session settings
+      WA_SESSION_NAME: ${WA_SESSION_NAME:-dmr-bot}
+      WA_HEADLESS: "true"
+      WA_AUTO_REFRESH: "true"
+      WA_CACHE_ENABLED: "true"
+      # N8N Integration
+      N8N_BASE_URL: ${N8N_BASE_URL}
+      N8N_API_KEY: ${N8N_API_KEY}
+      # Timezone
+      TZ: Asia/Jakarta
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "npm", "run", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - wabot-network
+
+networks:
+  wabot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
