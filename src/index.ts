@@ -38,13 +38,13 @@ const start = async (client: Client) => {
     const ownerContact = `${config.ownerNumber}@c.us`;
     const startupDate = new Date();
     const formattedDate = startupDate.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-    
-    const startupMessage = `🤖 *${config.botName} Status*\n\n` + 
+      const startupMessage = `🤖 *${config.botName} Status*\n\n` + 
       `✅ Bot telah berhasil diaktifkan\n` +
       `⏰ Waktu: ${formattedDate}\n` +
       `🖥️ Mode: ${process.env.NODE_ENV || 'development'}\n` +
-      `📱 WhatsApp: ${client.getHostNumber ? await client.getHostNumber() : 'Unknown'}\n` +
-      (config.autoRestartTime > 0 ? `⏳ Auto restart dalam: ${Math.floor(config.autoRestartTime / (60 * 60 * 1000))} jam\n` : '');
+      (config.autoRestartEnabled && config.autoRestartTime > 0 
+        ? `⏳ Auto restart dalam: ${Math.floor(config.autoRestartTime / (60 * 60 * 1000))} jam\n` 
+        : `🔕 Auto restart: Dinonaktifkan\n`);
       
     await client.sendText(
       ownerContact as any, 
@@ -92,8 +92,8 @@ const start = async (client: Client) => {
       }
     });
   }  
-    // Auto restart functionality
-  if (config.autoRestartTime > 0) {
+  // Auto restart functionality
+  if (config.autoRestartEnabled && config.autoRestartTime > 0) {
     setTimeout(async () => {
       log.system('Auto restart triggered');
       try {
@@ -115,6 +115,10 @@ const start = async (client: Client) => {
       }
       process.exit(0);
     }, config.autoRestartTime);
+    
+    log.info(`Auto restart scheduled in ${Math.floor(config.autoRestartTime / (60 * 60 * 1000))} hours`);
+  } else {
+    log.info('Auto restart is disabled');
   }
 
 };
@@ -124,7 +128,8 @@ create({
   sessionId: 'dmr-bot',
   multiDevice: true,
   authTimeout: 60,
-  blockCrashLogs: true,  disableSpins: true,
+  blockCrashLogs: true,
+  disableSpins: true,
   headless: true,
   logConsole: false,
   popup: false,
@@ -135,6 +140,9 @@ create({
   killProcessOnBrowserClose: true,
   bypassCSP: true,
   chromeInTempUserDir: true,
+  // Suppress license warnings for non-commercial use
+  licenseKey: 'non-commercial',
+  disableLicenseCheck: true,
 }).then(start).catch((error) => {
   log.error('Failed to start WhatsApp bot', error);
   process.exit(1);

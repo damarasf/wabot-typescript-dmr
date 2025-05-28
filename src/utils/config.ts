@@ -26,8 +26,13 @@ interface Config {
   prefixes: string[];
   antiCall: boolean;
   antiDelete: boolean;
+  autoRestartEnabled: boolean;
   autoRestartTime: number;
   timezone: string;
+
+  // WhatsApp-Automate configuration
+  waLicenseKey?: string;
+  waDisableLicenseCheck: boolean;
 
   // Database configuration
   dbHost: string;
@@ -57,8 +62,13 @@ const defaultConfig: Config = {
   prefixes: ['!', '#', '/', '.'],
   antiCall: true,
   antiDelete: true,
+  autoRestartEnabled: true,
   autoRestartTime: 3600000, // 1 hour in milliseconds
   timezone: 'Asia/Jakarta',
+
+  // WhatsApp-Automate configuration
+  waLicenseKey: 'non-commercial',
+  waDisableLicenseCheck: true,
 
   // Database configuration
   dbHost: 'localhost',
@@ -88,8 +98,13 @@ const config: Config = {
   prefixes: process.env.BOT_PREFIX ? process.env.BOT_PREFIX.split(',') : defaultConfig.prefixes,
   antiCall: process.env.ANTI_CALL === 'true' || defaultConfig.antiCall,
   antiDelete: process.env.ANTI_DELETE === 'true' || defaultConfig.antiDelete,
+  autoRestartEnabled: process.env.AUTO_RESTART_ENABLED !== 'false',
   autoRestartTime: parseInt(process.env.AUTO_RESTART_TIME || String(defaultConfig.autoRestartTime), 10),
   timezone: process.env.TIMEZONE || defaultConfig.timezone,
+
+  // WhatsApp-Automate configuration
+  waLicenseKey: process.env.WA_LICENSE_KEY || defaultConfig.waLicenseKey,
+  waDisableLicenseCheck: process.env.WA_DISABLE_LICENSE_CHECK === 'true' || defaultConfig.waDisableLicenseCheck,
 
   // Database configuration
   dbHost: process.env.DB_HOST || defaultConfig.dbHost,

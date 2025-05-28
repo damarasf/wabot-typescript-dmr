@@ -434,6 +434,10 @@ const translations: LanguageData = {
     [Language.INDONESIAN]: 'Melihat batas penggunaan',
     [Language.ENGLISH]: 'View usage limits'
   },
+  'command.desc.status': {
+    [Language.INDONESIAN]: 'Melihat status bot dan sistem',
+    [Language.ENGLISH]: 'View bot and system status'
+  },
   'command.desc.n8n': {
     [Language.INDONESIAN]: 'Menjalankan workflow N8N',
     [Language.ENGLISH]: 'Execute N8N workflow'
@@ -1051,8 +1055,8 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '❌ No target users found for broadcast.\n\n📊 *Filter:* {levelFilter}\n🎯 *Target:* {levelText}\n👥 *Users found:* 0\n\n_No users match the selected filter._'
   },
   'broadcast.confirmation': {
-    [Language.INDONESIAN]: '📢 *KONFIRMASI BROADCAST*\n\n📝 *Preview Pesan:*\n```{previewMessage}```\n\n📊 *Detail Broadcast:*\n🎯 *Target:* {levelFilter}\n👥 *Jumlah penerima:* {userCount} pengguna\n⏱️ *Estimasi waktu:* ~{estimatedTime} menit\n📏 *Panjang pesan:* {messageLength} karakter\n\n⚠️ *PERINGATAN:*\n• Proses ini akan memakan waktu\n• Jangan matikan bot selama broadcast\n• Rate limit: 2 detik per pesan\n\n🚀 *Broadcast akan dimulai dalam 5 detik...*\n_Kirim pesan apapun untuk membatalkan_',
-    [Language.ENGLISH]: '📢 *BROADCAST CONFIRMATION*\n\n📝 *Message Preview:*\n```{previewMessage}```\n\n📊 *Broadcast Details:*\n🎯 *Target:* {levelFilter}\n👥 *Recipients:* {userCount} users\n⏱️ *Estimated time:* ~{estimatedTime} minutes\n📏 *Message length:* {messageLength} characters\n\n⚠️ *WARNING:*\n• This process will take time\n• Do not turn off bot during broadcast\n• Rate limit: 2 seconds per message\n\n🚀 *Broadcast will start in 5 seconds...*\n_Send any message to cancel_'
+    [Language.INDONESIAN]: '📢 *KONFIRMASI BROADCAST*\n\n📝 *Preview Pesan:*\n```{previewMessage}```\n\n📊 *Detail Broadcast:*\n🎯 *Target:* {levelFilter}\n👥 *Jumlah penerima:* {userCount} pengguna\n⏱️ *Estimasi waktu:* ~{estimatedTime} menit\n📏 *Panjang pesan:* {messageLength} karakter\n\n⚠️ *Hanya untuk Owner*',
+    [Language.ENGLISH]: '📢 *BROADCAST CONFIRMATION*\n\n📝 *Message Preview:*\n```{previewMessage}```\n\n📊 *Broadcast Details:*\n🎯 *Target:* {levelFilter}\n👥 *Recipients:* {userCount} users\n⏱️ *Estimated time:* ~{estimatedTime} minutes\n📏 *Message length:* {messageLength} characters\n\n⚠️ *Owner Only*'
   },
   'broadcast.starting': {
     [Language.INDONESIAN]: '🚀 *BROADCAST DIMULAI*\n\n👥 *Total penerima:* {userCount} pengguna\n🕐 *Waktu mulai:* {currentTime}\n⏳ *Status:* Mengirim pesan...\n\n📊 *Progress akan diupdate setiap 10 pesan*',
@@ -1192,8 +1196,8 @@ const translations: LanguageData = {
 
   // Restart command
   'restart.help': {
-    [Language.INDONESIAN]: '*🔄 Konfirmasi Restart Bot*\n\n⚠️ *KONFIRMASI RESTART DIPERLUKAN*\n\n🤖 *Info Bot:*\n• Nama: {botName}\n• Uptime: {uptime}\n• PID: {processId}\n• Memory: {memoryUsage}MB\n\n🔄 *Dampak Restart:*\n• Bot akan offline 30-60 detik\n• Semua sesi akan terputus\n• Proses akan dimulai ulang\n\n✅ *Untuk melanjutkan:*\n`restart confirm` - Lanjutkan restart\n\n⏰ *Timeout:* 30 detik (otomatis batal)',
-    [Language.ENGLISH]: '*🔄 Bot Restart Confirmation*\n\n⚠️ *RESTART CONFIRMATION REQUIRED*\n\n🤖 *Bot Info:*\n• Name: {botName}\n• Uptime: {uptime}\n• PID: {processId}\n• Memory: {memoryUsage}MB\n\n🔄 *Restart Impact:*\n• Bot will be offline 30-60 seconds\n• All sessions will disconnect\n• Process will restart\n\n✅ *To continue:*\n`restart confirm` - Continue restart\n\n⏰ *Timeout:* 30 seconds (auto cancel)'
+    [Language.INDONESIAN]: '*🔄 Konfirmasi Restart Bot*\n\n⚠️ *KONFIRMASI RESTART DIPERLUKAN*\n\n🤖 *Info Bot:*\n• Nama: {botName}\n• Waktu: {currentTime}\n• Uptime: {uptime}\n• PID: {processId}\n• Memory: {memoryUsage}MB\n\n🔄 *Dampak Restart:*\n• Bot akan offline 30-60 detik\n• Semua sesi akan terputus\n• Proses akan dimulai ulang\n\n✅ *Untuk melanjutkan:*\n`restart confirm` - Lanjutkan restart\n\n⏰ *Timeout:* 30 detik (otomatis batal)',
+    [Language.ENGLISH]: '*🔄 Bot Restart Confirmation*\n\n⚠️ *RESTART CONFIRMATION REQUIRED*\n\n🤖 *Bot Info:*\n• Name: {botName}\n• Time: {currentTime}\n• Uptime: {uptime}\n• PID: {processId}\n• Memory: {memoryUsage}MB\n\n🔄 *Restart Impact:*\n• Bot will be offline 30-60 seconds\n• All sessions will disconnect\n• Process will restart\n\n✅ *To continue:*\n`restart confirm` - Continue restart\n\n⏰ *Timeout:* 30 seconds (auto cancel)'
   },
   'restart.starting': {
     [Language.INDONESIAN]: '*🔄 Restart Bot Dimulai*\n\n⏳ *BOT SEDANG DIRESTART...*\n\n🤖 *Detail Restart:*\n• Dipicu oleh: Owner\n• Waktu mulai: {currentTime}\n• Uptime sebelumnya: {uptime}\n\n⏰ *Timeline:*\n• 00:05 - Menyimpan data\n• 00:10 - Menutup koneksi\n• 00:15 - Restart proses\n• 01:00 - Bot kembali online\n\n📱 *Status:* Memulai shutdown...\n🔄 Bot akan kembali online sebentar lagi!',
@@ -1216,22 +1220,10 @@ const translations: LanguageData = {
     [Language.ENGLISH]: '*❌ Restart Failed*\n\n🚨 *ERROR DURING RESTART!*\n\n⚠️ *Error Details:*\n• {errorMessage}\n\n🔄 *Solutions:*\n• Try manual restart from server\n• Check system logs for details\n• Contact developer if problem persists\n\n📊 *System Info:*\n• PID: {processId}\n• Memory: {memoryUsage}MB\n• Uptime: {uptime}\n\n⏰ *Error time:* {currentTime}'
   },
 
-  // Language command specific keys
-  'language.current_language_id': {
-    [Language.INDONESIAN]: '🌐 Bahasa saat ini: Bahasa Indonesia',
-    [Language.ENGLISH]: '🌐 Current language: Indonesian'
-  },
-  'language.current_language_en': {
-    [Language.INDONESIAN]: '🌐 Bahasa saat ini: English',
-    [Language.ENGLISH]: '🌐 Current language: English'
-  },
-  'language.changed_success_id': {
-    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke Bahasa Indonesia!',
-    [Language.ENGLISH]: '✅ Language successfully changed to Indonesian!'
-  },
-  'language.changed_success_en': {
-    [Language.INDONESIAN]: '✅ Bahasa berhasil diubah ke English!',
-    [Language.ENGLISH]: '✅ Language successfully changed to English!'
+  // Status command specific keys
+  'status.info': {
+    [Language.INDONESIAN]: '🤖 *Status Bot DMR*\n\n📋 *Informasi Bot:*\n• Nama: {botName}\n• Waktu: {currentTime}\n• Uptime: {uptime}\n• Environment: {environment}\n• Timezone: {timezone}\n\n💾 *Sistem:*\n• Memory: {memoryUsage}MB / {totalMemory}MB\n• Node.js: {nodeVersion}\n• Process ID: {processId}\n\n⚙️ *Konfigurasi:*\n• Auto Restart: {autoRestartEnabled}\n• Restart Timer: {autoRestartTime}\n• Anti Call: {antiCallStatus}\n• Anti Delete: {antiDeleteStatus}\n\n✅ Bot berjalan dengan normal!',
+    [Language.ENGLISH]: '🤖 *DMR Bot Status*\n\n📋 *Bot Information:*\n• Name: {botName}\n• Time: {currentTime}\n• Uptime: {uptime}\n• Environment: {environment}\n• Timezone: {timezone}\n\n💾 *System:*\n• Memory: {memoryUsage}MB / {totalMemory}MB\n• Node.js: {nodeVersion}\n• Process ID: {processId}\n\n⚙️ *Configuration:*\n• Auto Restart: {autoRestartEnabled}\n• Restart Timer: {autoRestartTime}\n• Anti Call: {antiCallStatus}\n• Anti Delete: {antiDeleteStatus}\n\n✅ Bot is running normally!'
   },
 
   // Profile command specific keys
