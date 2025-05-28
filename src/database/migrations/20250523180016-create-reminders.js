@@ -20,22 +20,33 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
+      groupId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'groups',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
       message: {
         type: Sequelize.TEXT,
         allowNull: false
       },
-      scheduledAt: {
+      scheduledTime: {
         type: Sequelize.DATE,
         allowNull: false
+      },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
       },
       isCompleted: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false
-      },
-      completedAt: {
-        type: Sequelize.DATE,
-        allowNull: true
       },
       createdAt: {
         allowNull: false,
@@ -51,9 +62,12 @@ module.exports = {
 
     // Add indexes
     await queryInterface.addIndex('reminders', ['userId']);
-    await queryInterface.addIndex('reminders', ['scheduledAt']);
+    await queryInterface.addIndex('reminders', ['groupId']);
+    await queryInterface.addIndex('reminders', ['scheduledTime']);
+    await queryInterface.addIndex('reminders', ['isActive']);
     await queryInterface.addIndex('reminders', ['isCompleted']);
-    await queryInterface.addIndex('reminders', ['scheduledAt', 'isCompleted']);
+    await queryInterface.addIndex('reminders', ['scheduledTime', 'isCompleted']);
+    await queryInterface.addIndex('reminders', ['scheduledTime', 'isActive']);
   },
 
   async down (queryInterface, Sequelize) {

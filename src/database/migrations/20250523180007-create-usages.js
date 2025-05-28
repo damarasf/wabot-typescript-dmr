@@ -40,6 +40,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW
       },
+      lastReset: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -56,6 +61,7 @@ module.exports = {
     await queryInterface.addIndex('usages', ['userId']);
     await queryInterface.addIndex('usages', ['feature']);
     await queryInterface.addIndex('usages', ['date']);
+    await queryInterface.addIndex('usages', ['lastReset']);
     await queryInterface.addIndex('usages', ['userId', 'feature', 'date'], {
       unique: true,
       name: 'unique_user_feature_date'
